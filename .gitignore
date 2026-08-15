@@ -1,2 +1,6 @@
 LocalTodo-win-x64/Data/ 
 LocalTodo-win-x64/Logs/ 
+
+# LocalTodo portable runtime data
+LocalTodo-*-win-x64*/Data/
+LocalTodo-*-win-x64*/Logs/

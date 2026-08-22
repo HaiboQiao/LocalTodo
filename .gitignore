@@ -1,6 +1,9 @@
-LocalTodo-win-x64/Data/ 
-LocalTodo-win-x64/Logs/ 
-
 # LocalTodo portable runtime data
 LocalTodo-*-win-x64*/Data/
+LocalTodo-*-win-x64*/Backups/
 LocalTodo-*-win-x64*/Logs/
+
+# Also protect data if the executable is copied to the repository root.
+/Data/
+/Backups/
+/Logs/

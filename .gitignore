@@ -1,9 +1,14 @@
-# LocalTodo portable runtime data
-LocalTodo-*-win-x64*/Data/
-LocalTodo-*-win-x64*/Backups/
-LocalTodo-*-win-x64*/Logs/
+# LocalTodo runtime data
+LocalTodo-*-win-x64-portable/Data/
+LocalTodo-*-win-x64-portable/Backups/
+LocalTodo-*-win-x64-portable/Logs/
 
-# Also protect data if the executable is copied to the repository root.
+# Protect data when the executable is copied to the repository root
 /Data/
 /Backups/
 /Logs/
+
+# SQLite transient files and application logs
+*.db-shm
+*.db-wal
+*.log

@@ -59,5 +59,7 @@
 - GitHub 仓库：<https://github.com/HaiboQiao/LocalTodo>
 - 默认分支：`main`
 - 版本标签：`v3.0.0`
+- GitHub 仓库内容：源码、测试、文档和自动化流程
+- GitHub Release 附件：`LocalTodo-3.0.0-win-x64-portable.zip`、`SHA256SUMS.txt`
 - 发布目录内容与 `SHA256SUMS.txt`：一致
-- 本地发布提交与远端 `main`：上传后使用远端引用复核
+- 本地发布提交与远端 `main`：使用远端引用复核

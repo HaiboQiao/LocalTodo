@@ -1,0 +1,91 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: windows-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Verify tag and project version
+        shell: pwsh
+        run: |
+          $tagVersion = "${{ github.ref_name }}".TrimStart('v')
+          [xml]$project = Get-Content src/LocalTodo/LocalTodo.csproj
+          $projectVersion = [string]$project.Project.PropertyGroup.Version
+          if ($tagVersion -ne $projectVersion) {
+            throw "Tag version $tagVersion does not match project version $projectVersion."
+          }
+
+      - name: Restore and test
+        run: |
+          dotnet restore LocalTodo.slnx
+          dotnet test tests/LocalTodo.Tests/LocalTodo.Tests.csproj --configuration Release --no-restore --verbosity normal
+
+      - name: Restore win-x64 runtime
+        run: dotnet restore src/LocalTodo/LocalTodo.csproj --runtime win-x64
+
+      - name: Publish portable app
+        shell: pwsh
+        run: |
+          $version = "${{ github.ref_name }}".TrimStart('v')
+          $portableName = "LocalTodo-$version-win-x64-portable"
+          $portableDir = Join-Path "${{ github.workspace }}" "artifacts/$portableName"
+          dotnet publish src/LocalTodo/LocalTodo.csproj `
+            --configuration Release `
+            --runtime win-x64 `
+            --self-contained true `
+            --no-restore `
+            /p:PublishProfile=FolderProfile `
+            /p:PublishDir="$portableDir/" `
+            --verbosity minimal
+          $files = @(Get-ChildItem -LiteralPath $portableDir -File)
+          if ($files.Count -ne 7 -or (Get-ChildItem -LiteralPath $portableDir -Directory).Count -ne 0) {
+            throw "Unexpected portable layout: $($files.Count) files."
+          }
+          Compress-Archive -Path $portableDir -DestinationPath "artifacts/$portableName.zip" -CompressionLevel Optimal
+          $checksumLines = @()
+          $archive = Get-FileHash "artifacts/$portableName.zip" -Algorithm SHA256
+          $checksumLines += "$($archive.Hash)  $portableName.zip"
+          $checksumLines += $files | Sort-Object Name | Get-FileHash -Algorithm SHA256 | ForEach-Object {
+            "$($_.Hash)  $portableName/$([IO.Path]::GetFileName($_.Path))"
+          }
+          $checksumLines | Set-Content "artifacts/SHA256SUMS.txt" -Encoding utf8
+
+      - name: Create GitHub Release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $tag = "${{ github.ref_name }}"
+          $notesFile = "docs/releases/$tag.md"
+          $archiveFile = Get-ChildItem artifacts -Filter '*.zip' -File | Select-Object -First 1
+          if ($null -eq $archiveFile) {
+            throw "Portable archive was not generated."
+          }
+          if (Test-Path -LiteralPath $notesFile) {
+            gh release create $tag $archiveFile.FullName artifacts/SHA256SUMS.txt `
+              --title "LocalTodo $($tag.TrimStart('v'))" `
+              --notes-file $notesFile `
+              --verify-tag
+          } else {
+            gh release create $tag $archiveFile.FullName artifacts/SHA256SUMS.txt `
+              --title "LocalTodo $($tag.TrimStart('v'))" `
+              --generate-notes `
+              --verify-tag
+          }

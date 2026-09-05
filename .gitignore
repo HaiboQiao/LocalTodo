@@ -13,6 +13,9 @@ TestResults/
 LocalTodo-*-win-x64-portable/Data/
 LocalTodo-*-win-x64-portable/Logs/
 LocalTodo-*-win-x64-portable/Backups/
+/LocalTodo-*-win-x64-portable/
+/LocalTodo-*-win-x64-portable.zip
+/release-assets/
 *.db
 *.db-wal
 *.db-shm

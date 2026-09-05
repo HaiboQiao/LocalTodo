@@ -17,9 +17,12 @@ LocalTodo 是一款面向 Windows 的本地离线任务管理应用。它不需�
 
 ## 下载与运行
 
-1. 下载仓库中的 `LocalTodo-3.0.0-win-x64-portable` 文件夹。
-2. 保留该文件夹中的全部 7 个程序文件。
-3. 双击 `LocalTodo.exe`。
+1. 打开 [GitHub Releases](https://github.com/HaiboQiao/LocalTodo/releases/latest)。
+2. 在 **Assets** 中下载 `LocalTodo-3.0.0-win-x64-portable.zip`。
+3. 完整解压 ZIP，保留目录中的全部 7 个程序文件。
+4. 双击 `LocalTodo.exe`。
+
+也可[直接下载 3.0.0 便携版](https://github.com/HaiboQiao/LocalTodo/releases/download/v3.0.0/LocalTodo-3.0.0-win-x64-portable.zip)。Release 页面末尾由 GitHub 自动提供的 `Source code (zip)` 和 `Source code (tar.gz)` 是源码包，不是可直接运行的软件。
 
 程序目前没有数字签名。Windows 首次运行时可能显示安全提示，请确认文件来自本仓库，并使用根目录的 [`SHA256SUMS.txt`](SHA256SUMS.txt) 校验文件完整性。
 
@@ -141,7 +144,7 @@ dotnet publish src/LocalTodo/LocalTodo.csproj `
 src/LocalTodo/          WPF 应用、视图模型、服务与数据访问代码
 tests/LocalTodo.Tests/  自动化回归测试
 .github/workflows/      GitHub Actions 持续集成配置
-LocalTodo-3.0.0-.../    Windows x64 便携运行文件
+docs/releases/          GitHub Release 版本说明
 ```
 
 ## 隐私

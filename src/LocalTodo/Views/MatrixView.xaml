@@ -1,0 +1,1015 @@
+<UserControl
+    x:Class="LocalTodo.Views.MatrixView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="clr-namespace:LocalTodo.Views.Controls"
+    xmlns:models="clr-namespace:LocalTodo.Models"
+    UseLayoutRounding="True"
+    SnapsToDevicePixels="True"
+    Loaded="OnMatrixViewLoaded"
+    Unloaded="OnMatrixViewUnloaded">
+
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="Resources/MatrixViewResources.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        <Style
+            x:Key="MatrixTaskListStyle"
+            TargetType="{x:Type ListBox}">
+
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="Cursor" Value="Arrow" />
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter
+                Property="ItemContainerStyle"
+                Value="{StaticResource MatrixTaskListItemStyle}" />
+
+            <Setter
+                Property="ScrollViewer.CanContentScroll"
+                Value="True" />
+
+            <Setter
+                Property="ScrollViewer.HorizontalScrollBarVisibility"
+                Value="Disabled" />
+
+            <Setter
+                Property="ScrollViewer.VerticalScrollBarVisibility"
+                Value="Visible" />
+
+            <Setter
+                Property="VirtualizingPanel.IsVirtualizing"
+                Value="True" />
+
+            <Setter
+                Property="VirtualizingPanel.IsVirtualizingWhenGrouping"
+                Value="True" />
+
+            <Setter
+                Property="VirtualizingPanel.VirtualizationMode"
+                Value="Recycling" />
+
+            <EventSetter
+                Event="PreviewMouseLeftButtonDown"
+                Handler="OnTaskListPreviewMouseLeftButtonDown" />
+
+            <EventSetter
+                Event="PreviewMouseLeftButtonUp"
+                Handler="OnTaskListPreviewMouseLeftButtonUp" />
+
+            <EventSetter
+                Event="PreviewMouseMove"
+                Handler="OnTaskListPreviewMouseMove" />
+
+            <EventSetter
+                Event="GiveFeedback"
+                Handler="OnTaskListGiveFeedback" />
+        </Style>
+        </ResourceDictionary>
+    </UserControl.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- 四象限主体 -->
+
+        <Grid Grid.Row="0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*" />
+                <RowDefinition Height="18" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="18" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <!-- 第一象限 -->
+
+            <Border
+                Grid.Row="0"
+                Grid.Column="0"
+                Style="{StaticResource QuadrantCardStyle}"
+                AllowDrop="True"
+                Tag="{x:Static models:QuadrantType.ImportantAndUrgent}"
+                DragEnter="OnQuadrantDragOver"
+                DragOver="OnQuadrantDragOver"
+                DragLeave="OnQuadrantDragLeave"
+                Drop="OnQuadrantDrop">
+
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <Grid
+                        Grid.Row="0"
+                        Margin="0,0,0,10">
+
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel
+                            Grid.Column="0"
+                            Margin="0,0,10,0"
+                            Orientation="Horizontal">
+
+                            <TextBlock
+                                VerticalAlignment="Center"
+                                Text="第一象限"
+                                FontSize="18"
+                                FontWeight="SemiBold"
+                                Foreground="{StaticResource Brush.Danger}" />
+
+                            <TextBlock
+                                Margin="10,2,0,0"
+                                VerticalAlignment="Center"
+                                Text="重要且紧急"
+                                TextTrimming="CharacterEllipsis"
+                                FontSize="12"
+                                Foreground="{StaticResource Brush.TextSecondary}" />
+                        </StackPanel>
+
+                        <Button
+                            Grid.Column="1"
+                            Margin="6,0,10,0"
+                            VerticalAlignment="Center"
+                            Style="{StaticResource QuadrantAddButtonStyle}"
+                            Content="＋ 添加"
+                            Tag="{x:Static models:QuadrantType.ImportantAndUrgent}"
+                            Click="OnOpenQuickAddPopupClick" />
+
+                        <TextBlock
+                            Grid.Column="2"
+                            VerticalAlignment="Center"
+                            Text="{Binding ImportantAndUrgentTasks.Count,
+                                StringFormat=共 {0} 条}"
+                            FontSize="12"
+                            Foreground="{StaticResource Brush.TextSecondary}" />
+                    </Grid>
+
+                    <Grid Grid.Row="1">
+                        <ListBox
+                            Style="{StaticResource MatrixTaskListStyle}"
+                            ItemsSource="{Binding ImportantAndUrgentGroups.View}"
+                            ItemTemplate="{StaticResource MatrixTaskItemTemplate}">
+
+                            <ListBox.Resources>
+                                <Style
+                                    TargetType="{x:Type ScrollViewer}"
+                                    BasedOn="{StaticResource MatrixAlignedVerticalScrollViewerStyle}" />
+                            </ListBox.Resources>
+
+                            <ListBox.GroupStyle>
+                                <GroupStyle
+                                    ContainerStyle="{StaticResource MatrixDateGroupItemStyle}" />
+                            </ListBox.GroupStyle>
+                        </ListBox>
+
+                        <TextBlock
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            IsHitTestVisible="False"
+                            Text="当前没有任务"
+                            Foreground="{StaticResource Brush.TextSecondary}">
+
+                            <TextBlock.Style>
+                                <Style TargetType="{x:Type TextBlock}">
+                                    <Setter
+                                        Property="Visibility"
+                                        Value="Collapsed" />
+
+                                    <Style.Triggers>
+                                        <DataTrigger
+                                            Binding="{Binding HasImportantAndUrgentTasks}"
+                                            Value="False">
+
+                                            <Setter
+                                                Property="Visibility"
+                                                Value="Visible" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                    </Grid>
+                </Grid>
+            </Border>
+
+            <!-- 第二象限 -->
+
+            <Border
+                Grid.Row="0"
+                Grid.Column="2"
+                Style="{StaticResource QuadrantCardStyle}"
+                AllowDrop="True"
+                Tag="{x:Static models:QuadrantType.ImportantNotUrgent}"
+                DragEnter="OnQuadrantDragOver"
+                DragOver="OnQuadrantDragOver"
+                DragLeave="OnQuadrantDragLeave"
+                Drop="OnQuadrantDrop">
+
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <Grid
+                        Grid.Row="0"
+                        Margin="0,0,0,10">
+
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel
+                            Grid.Column="0"
+                            Margin="0,0,10,0"
+                            Orientation="Horizontal">
+
+                            <TextBlock
+                                VerticalAlignment="Center"
+                                Text="第二象限"
+                                FontSize="18"
+                                FontWeight="SemiBold"
+                                Foreground="{StaticResource Brush.Primary}" />
+
+                            <TextBlock
+                                Margin="10,2,0,0"
+                                VerticalAlignment="Center"
+                                Text="重要但不紧急"
+                                TextTrimming="CharacterEllipsis"
+                                FontSize="12"
+                                Foreground="{StaticResource Brush.TextSecondary}" />
+                        </StackPanel>
+
+                        <Button
+                            Grid.Column="1"
+                            Margin="6,0,10,0"
+                            VerticalAlignment="Center"
+                            Style="{StaticResource QuadrantAddButtonStyle}"
+                            Content="＋ 添加"
+                            Tag="{x:Static models:QuadrantType.ImportantNotUrgent}"
+                            Click="OnOpenQuickAddPopupClick" />
+
+                        <TextBlock
+                            Grid.Column="2"
+                            VerticalAlignment="Center"
+                            Text="{Binding ImportantNotUrgentTasks.Count,
+                                StringFormat=共 {0} 条}"
+                            FontSize="12"
+                            Foreground="{StaticResource Brush.TextSecondary}" />
+                    </Grid>
+
+                    <Grid Grid.Row="1">
+                        <ListBox
+                            Style="{StaticResource MatrixTaskListStyle}"
+                            ItemsSource="{Binding ImportantNotUrgentGroups.View}"
+                            ItemTemplate="{StaticResource MatrixTaskItemTemplate}">
+
+                            <ListBox.Resources>
+                                <Style
+                                    TargetType="{x:Type ScrollViewer}"
+                                    BasedOn="{StaticResource MatrixAlignedVerticalScrollViewerStyle}" />
+                            </ListBox.Resources>
+
+                            <ListBox.GroupStyle>
+                                <GroupStyle
+                                    ContainerStyle="{StaticResource MatrixDateGroupItemStyle}" />
+                            </ListBox.GroupStyle>
+                        </ListBox>
+
+                        <TextBlock
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            IsHitTestVisible="False"
+                            Text="当前没有任务"
+                            Foreground="{StaticResource Brush.TextSecondary}">
+
+                            <TextBlock.Style>
+                                <Style TargetType="{x:Type TextBlock}">
+                                    <Setter
+                                        Property="Visibility"
+                                        Value="Collapsed" />
+
+                                    <Style.Triggers>
+                                        <DataTrigger
+                                            Binding="{Binding HasImportantNotUrgentTasks}"
+                                            Value="False">
+
+                                            <Setter
+                                                Property="Visibility"
+                                                Value="Visible" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                    </Grid>
+                </Grid>
+            </Border>
+
+            <!-- 第三象限 -->
+
+            <Border
+                Grid.Row="2"
+                Grid.Column="0"
+                Style="{StaticResource QuadrantCardStyle}"
+                AllowDrop="True"
+                Tag="{x:Static models:QuadrantType.UrgentNotImportant}"
+                DragEnter="OnQuadrantDragOver"
+                DragOver="OnQuadrantDragOver"
+                DragLeave="OnQuadrantDragLeave"
+                Drop="OnQuadrantDrop">
+
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <Grid
+                        Grid.Row="0"
+                        Margin="0,0,0,10">
+
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel
+                            Grid.Column="0"
+                            Margin="0,0,10,0"
+                            Orientation="Horizontal">
+
+                            <TextBlock
+                                VerticalAlignment="Center"
+                                Text="第三象限"
+                                FontSize="18"
+                                FontWeight="SemiBold"
+                                Foreground="{StaticResource Brush.Warning}" />
+
+                            <TextBlock
+                                Margin="10,2,0,0"
+                                VerticalAlignment="Center"
+                                Text="紧急但不重要"
+                                TextTrimming="CharacterEllipsis"
+                                FontSize="12"
+                                Foreground="{StaticResource Brush.TextSecondary}" />
+                        </StackPanel>
+
+                        <Button
+                            Grid.Column="1"
+                            Margin="6,0,10,0"
+                            VerticalAlignment="Center"
+                            Style="{StaticResource QuadrantAddButtonStyle}"
+                            Content="＋ 添加"
+                            Tag="{x:Static models:QuadrantType.UrgentNotImportant}"
+                            Click="OnOpenQuickAddPopupClick" />
+
+                        <TextBlock
+                            Grid.Column="2"
+                            VerticalAlignment="Center"
+                            Text="{Binding UrgentNotImportantTasks.Count,
+                                StringFormat=共 {0} 条}"
+                            FontSize="12"
+                            Foreground="{StaticResource Brush.TextSecondary}" />
+                    </Grid>
+
+                    <Grid Grid.Row="1">
+                        <ListBox
+                            Style="{StaticResource MatrixTaskListStyle}"
+                            ItemsSource="{Binding UrgentNotImportantGroups.View}"
+                            ItemTemplate="{StaticResource MatrixTaskItemTemplate}">
+
+                            <ListBox.Resources>
+                                <Style
+                                    TargetType="{x:Type ScrollViewer}"
+                                    BasedOn="{StaticResource MatrixAlignedVerticalScrollViewerStyle}" />
+                            </ListBox.Resources>
+
+                            <ListBox.GroupStyle>
+                                <GroupStyle
+                                    ContainerStyle="{StaticResource MatrixDateGroupItemStyle}" />
+                            </ListBox.GroupStyle>
+                        </ListBox>
+
+                        <TextBlock
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            IsHitTestVisible="False"
+                            Text="当前没有任务"
+                            Foreground="{StaticResource Brush.TextSecondary}">
+
+                            <TextBlock.Style>
+                                <Style TargetType="{x:Type TextBlock}">
+                                    <Setter
+                                        Property="Visibility"
+                                        Value="Collapsed" />
+
+                                    <Style.Triggers>
+                                        <DataTrigger
+                                            Binding="{Binding HasUrgentNotImportantTasks}"
+                                            Value="False">
+
+                                            <Setter
+                                                Property="Visibility"
+                                                Value="Visible" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                    </Grid>
+                </Grid>
+            </Border>
+
+            <!-- 第四象限 -->
+
+            <Border
+                Grid.Row="2"
+                Grid.Column="2"
+                Style="{StaticResource QuadrantCardStyle}"
+                AllowDrop="True"
+                Tag="{x:Static models:QuadrantType.NotImportantNotUrgent}"
+                DragEnter="OnQuadrantDragOver"
+                DragOver="OnQuadrantDragOver"
+                DragLeave="OnQuadrantDragLeave"
+                Drop="OnQuadrantDrop">
+
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <Grid
+                        Grid.Row="0"
+                        Margin="0,0,0,10">
+
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel
+                            Grid.Column="0"
+                            Margin="0,0,10,0"
+                            Orientation="Horizontal">
+
+                            <TextBlock
+                                VerticalAlignment="Center"
+                                Text="第四象限"
+                                FontSize="18"
+                                FontWeight="SemiBold"
+                                Foreground="{StaticResource Brush.TextSecondary}" />
+
+                            <TextBlock
+                                Margin="10,2,0,0"
+                                VerticalAlignment="Center"
+                                Text="不重要且不紧急"
+                                TextTrimming="CharacterEllipsis"
+                                FontSize="12"
+                                Foreground="{StaticResource Brush.TextSecondary}" />
+                        </StackPanel>
+
+                        <Button
+                            Grid.Column="1"
+                            Margin="6,0,10,0"
+                            VerticalAlignment="Center"
+                            Style="{StaticResource QuadrantAddButtonStyle}"
+                            Content="＋ 添加"
+                            Tag="{x:Static models:QuadrantType.NotImportantNotUrgent}"
+                            Click="OnOpenQuickAddPopupClick" />
+
+                        <TextBlock
+                            Grid.Column="2"
+                            VerticalAlignment="Center"
+                            Text="{Binding NotImportantNotUrgentTasks.Count,
+                                StringFormat=共 {0} 条}"
+                            FontSize="12"
+                            Foreground="{StaticResource Brush.TextSecondary}" />
+                    </Grid>
+
+                    <Grid Grid.Row="1">
+                        <ListBox
+                            Style="{StaticResource MatrixTaskListStyle}"
+                            ItemsSource="{Binding NotImportantNotUrgentGroups.View}"
+                            ItemTemplate="{StaticResource MatrixTaskItemTemplate}">
+
+                            <ListBox.Resources>
+                                <Style
+                                    TargetType="{x:Type ScrollViewer}"
+                                    BasedOn="{StaticResource MatrixAlignedVerticalScrollViewerStyle}" />
+                            </ListBox.Resources>
+
+                            <ListBox.GroupStyle>
+                                <GroupStyle
+                                    ContainerStyle="{StaticResource MatrixDateGroupItemStyle}" />
+                            </ListBox.GroupStyle>
+                        </ListBox>
+
+                        <TextBlock
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            IsHitTestVisible="False"
+                            Text="当前没有任务"
+                            Foreground="{StaticResource Brush.TextSecondary}">
+
+                            <TextBlock.Style>
+                                <Style TargetType="{x:Type TextBlock}">
+                                    <Setter
+                                        Property="Visibility"
+                                        Value="Collapsed" />
+
+                                    <Style.Triggers>
+                                        <DataTrigger
+                                            Binding="{Binding HasNotImportantNotUrgentTasks}"
+                                            Value="False">
+
+                                            <Setter
+                                                Property="Visibility"
+                                                Value="Visible" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                    </Grid>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- 指定象限内的快速新增弹窗 -->
+
+        <Popup
+            x:Name="QuickAddPopup"
+            AllowsTransparency="True"
+            Placement="Bottom"
+            StaysOpen="False"
+            PopupAnimation="Fade"
+            Closed="OnQuickAddPopupClosed">
+
+            <!--
+                四象限快速新增 Popup。
+
+                宽度与“所有任务”和“日历”的新增窗口统一为 430。
+
+                第一行：
+                截止日期 / 截止时间 / 是否提醒
+
+                第二行：
+                所属象限 / 是否循环 / 添加任务
+            -->
+            <Border
+                x:Name="QuickAddPopupRoot"
+                Width="430"
+                MaxHeight="620"
+                Style="{StaticResource PopupCardStyle}"
+                PreviewMouseLeftButtonDown=
+                    "OnQuickAddPopupPreviewMouseLeftButtonDown">
+
+                <ScrollViewer
+                    VerticalScrollBarVisibility="Auto"
+                    HorizontalScrollBarVisibility="Disabled">
+
+                    <StackPanel>
+
+                        <!-- 标题和右上角关闭按钮 -->
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock
+                                Grid.Column="0"
+                                VerticalAlignment="Center"
+                                Text="新增任务"
+                                Style="{StaticResource TaskPopupHeadingTextStyle}" />
+
+                            <Button
+                                Grid.Column="1"
+                                Width="28"
+                                Height="28"
+                                Padding="0"
+                                Background="Transparent"
+                                BorderThickness="0"
+                                Cursor="Hand"
+                                Content="×"
+                                FontSize="18"
+                                Foreground="{StaticResource Brush.TextSecondary}"
+                                Click="OnCloseQuickAddClick" />
+                        </Grid>
+
+                        <!-- 任务标题和重点标记 -->
+                        <Grid Margin="0,16,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock
+                                Grid.Column="0"
+                                VerticalAlignment="Center"
+                                Text="任务标题"
+                                FontWeight="SemiBold" />
+
+                            <StackPanel
+                                Grid.Column="1"
+                                VerticalAlignment="Center"
+                                Orientation="Horizontal">
+                                <CheckBox
+                                    Margin="0,0,14,0"
+                                    VerticalAlignment="Center"
+                                    Style="{StaticResource ImportantTaskCheckBoxStyle}"
+                                    Content="标记为持续日期"
+                                    IsChecked="{Binding NewMatrixTaskIsContinuous,
+                                        Mode=TwoWay,
+                                        UpdateSourceTrigger=PropertyChanged}"
+                                    IsEnabled="{Binding CanSetNewMatrixTaskContinuous}" />
+                                <CheckBox
+                                    VerticalAlignment="Center"
+                                    Style="{StaticResource ImportantTaskCheckBoxStyle}"
+                                    Content="标记为重点任务"
+                                    IsChecked="{Binding NewMatrixTaskIsImportant,
+                                        Mode=TwoWay,
+                                        UpdateSourceTrigger=PropertyChanged}" />
+                            </StackPanel>
+                        </Grid>
+
+                        <TextBox
+                            x:Name="MatrixQuickAddTitleTextBox"
+                            Style="{StaticResource TaskEditorTextBoxStyle}"
+                            Height="40"
+                            Margin="0,6,0,0"
+                            Padding="9,5"
+                            MaxLength="300"
+                            VerticalContentAlignment="Center"
+                            Text="{Binding NewMatrixTaskTitle,
+                                Mode=TwoWay,
+                                UpdateSourceTrigger=PropertyChanged}"
+                            TextChanged="OnMatrixQuickAddTitleTextChanged" />
+
+                        <!-- 任务说明 -->
+                        <TextBlock
+                            Margin="0,14,0,6"
+                            Text="任务说明"
+                            FontWeight="SemiBold" />
+
+                        <TextBox
+                            Style="{StaticResource TaskEditorTextBoxStyle}"
+                            MinHeight="120"
+                            MaxHeight="220"
+                            Padding="9"
+                            MaxLength="10000"
+                            AcceptsReturn="True"
+                            AcceptsTab="True"
+                            TextWrapping="Wrap"
+                            VerticalScrollBarVisibility="Auto"
+                            Text="{Binding NewMatrixTaskDescription,
+                                Mode=TwoWay,
+                                UpdateSourceTrigger=PropertyChanged}">
+
+                            <TextBox.Resources>
+
+                                <Style
+                                    TargetType="{x:Type ScrollBar}"
+                                    BasedOn="{StaticResource
+                                        TaskDescriptionThinScrollBarStyle}" />
+
+                            </TextBox.Resources>
+
+                        </TextBox>
+
+                        <!-- ====================================== -->
+                        <!-- 第一行：截止日期 / 截止时间 / 是否提醒 -->
+                        <!-- ====================================== -->
+
+                        <Grid Margin="0,14,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="10" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="10" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <controls:TaskDateSelectorView
+                                Grid.Column="0"
+                                SelectedDate="{Binding NewMatrixTaskDueDate}" />
+
+                            <controls:TaskValueSelectorView
+                                Grid.Column="2"
+                                Label="截止时间"
+                                IsEnabled="{Binding CanSetNewMatrixTaskDueTime}"
+                                ItemsSource="{Binding DueTimeOptions}"
+                                SelectedValue="{Binding NewMatrixTaskDueTime}" />
+
+                            <controls:TaskItemSelectorView
+                                Grid.Column="4"
+                                Label="是否提醒"
+                                IsEnabled="{Binding CanSetNewMatrixTaskReminder}"
+                                ItemsSource="{Binding ReminderOptions}"
+                                SelectedItem="{Binding NewMatrixTaskReminderOption}" />
+                        </Grid>
+
+                        <!-- ====================================== -->
+                        <!-- 第二行：所属象限 / 是否循环 / 添加任务 -->
+                        <!-- ====================================== -->
+
+                        <Grid Margin="0,12,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="10" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="10" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <controls:TaskValueSelectorView
+                                Grid.Column="0"
+                                Label="所属象限"
+                                ItemsSource="{Binding MatrixQuadrantOptions}"
+                                SelectedValue="{Binding NewMatrixTaskQuadrant}" />
+
+                            <controls:TaskValueSelectorView
+                                Grid.Column="2"
+                                Label="是否循环"
+                                IsEnabled="{Binding CanSetNewMatrixTaskRepeat}"
+                                ItemsSource="{Binding RepeatOptions}"
+                                SelectedValue="{Binding NewMatrixTaskRepeatType}" />
+
+                            <!-- 添加任务 -->
+                            <StackPanel Grid.Column="4">
+                                <!--
+                                    空标题用于占位，
+                                    保证按钮与前两个 ComboBox 底边对齐。
+                                -->
+                                <TextBlock
+                                    Margin="0,0,0,6"
+                                    Text=" "
+                                    FontWeight="SemiBold" />
+
+                                <Button
+                                    Height="38"
+                                    Style="{StaticResource TaskPrimaryActionButtonStyle}"
+                                    Content="添加任务"
+                                    Click="OnConfirmQuickAddClick" />
+                            </StackPanel>
+                        </Grid>
+
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
+        </Popup>
+
+
+        <!-- 鼠标附近的任务详情编辑弹窗 -->
+
+        <Popup
+            x:Name="TaskDetailsPopup"
+            AllowsTransparency="True"
+            Placement="MousePoint"
+            HorizontalOffset="12"
+            VerticalOffset="12"
+            StaysOpen="False"
+            PopupAnimation="Fade"
+            Closed="OnTaskDetailsPopupClosed">
+
+            <Border
+                x:Name="TaskDetailsPopupRoot"
+                Width="430"
+                MaxHeight="620"
+                Style="{StaticResource PopupCardStyle}">
+
+                <ScrollViewer
+                    VerticalScrollBarVisibility="Auto"
+                    HorizontalScrollBarVisibility="Disabled">
+
+                    <StackPanel>
+
+                        <!-- 弹窗标题 -->
+
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock
+                                Grid.Column="0"
+                                VerticalAlignment="Center"
+                                Text="任务详情"
+                                Style="{StaticResource TaskPopupHeadingTextStyle}" />
+
+                            <Button
+                                Grid.Column="1"
+                                Width="28"
+                                Height="28"
+                                Padding="0"
+                                Background="Transparent"
+                                BorderThickness="0"
+                                Cursor="Hand"
+                                Content="×"
+                                FontSize="18"
+                                Foreground="{StaticResource Brush.TextSecondary}"
+                                Click="OnCloseTaskDetailsClick" />
+                        </Grid>
+
+                        <TextBlock
+                            Margin="0,6,0,0"
+                            Text="{Binding StatusMessage}"
+                            FontSize="13"
+                            Foreground="{StaticResource Brush.TextSecondary}"
+                            TextWrapping="Wrap" />
+
+                        <!-- 标题和重点标记 -->
+
+                        <Grid Margin="0,16,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock
+                                Grid.Column="0"
+                                VerticalAlignment="Center"
+                                Text="任务标题"
+                                FontWeight="SemiBold" />
+
+                            <StackPanel
+                                Grid.Column="1"
+                                VerticalAlignment="Center"
+                                Orientation="Horizontal">
+                                <CheckBox
+                                    Margin="0,0,14,0"
+                                    VerticalAlignment="Center"
+                                    Style="{StaticResource ImportantTaskCheckBoxStyle}"
+                                    Content="标记为持续日期"
+                                    IsChecked="{Binding EditorIsContinuous,
+                                        Mode=TwoWay,
+                                        UpdateSourceTrigger=PropertyChanged}"
+                                    IsEnabled="{Binding CanSetEditorContinuous}" />
+                                <CheckBox
+                                    VerticalAlignment="Center"
+                                    Style="{StaticResource ImportantTaskCheckBoxStyle}"
+                                    Content="标记为重点任务"
+                                    IsChecked="{Binding EditorIsImportant,
+                                        Mode=TwoWay,
+                                        UpdateSourceTrigger=PropertyChanged}" />
+                            </StackPanel>
+                        </Grid>
+
+                        <TextBox
+                            Style="{StaticResource TaskEditorTextBoxStyle}"
+                            Height="40"
+                            Margin="0,6,0,0"
+                            Padding="9,5"
+                            VerticalContentAlignment="Center"
+                            Text="{Binding EditorTitle,
+                                Mode=TwoWay,
+                                UpdateSourceTrigger=PropertyChanged}" />
+
+                        <!-- 任务说明 -->
+
+                        <TextBlock
+                            Margin="0,14,0,6"
+                            Text="任务说明"
+                            FontWeight="SemiBold" />
+
+                        <TextBox
+                            Style="{StaticResource TaskEditorTextBoxStyle}"
+                            MinHeight="120"
+                            MaxHeight="230"
+                            Padding="9"
+                            AcceptsReturn="True"
+                            AcceptsTab="True"
+                            TextWrapping="Wrap"
+                            VerticalScrollBarVisibility="Auto"
+                            Text="{Binding EditorDescription,
+                                Mode=TwoWay,
+                                UpdateSourceTrigger=PropertyChanged}">
+
+                            <TextBox.Resources>
+
+                                <Style
+                                    TargetType="{x:Type ScrollBar}"
+                                    BasedOn="{StaticResource
+                                        TaskDescriptionThinScrollBarStyle}" />
+
+                            </TextBox.Resources>
+
+                        </TextBox>
+
+                        <!--
+                            ======================================
+                            任务详情底部：2 行 × 3 列
+                            ======================================
+
+                            第一行：
+                            截止日期 / 截止时间 / 是否提醒
+
+                            第二行：
+                            所属象限 / 是否循环 / 删除任务
+                        -->
+
+                        <StackPanel Margin="0,14,0,0">
+
+                            <!-- 第一行 -->
+
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="10" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="10" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+
+                                <controls:TaskDateSelectorView
+                                    Grid.Column="0"
+                                    SelectedDate="{Binding EditorDueDate}" />
+
+                                <controls:TaskValueSelectorView
+                                    Grid.Column="2"
+                                    Label="截止时间"
+                                    IsEnabled="{Binding CanSetEditorDueTime}"
+                                    ItemsSource="{Binding DueTimeOptions}"
+                                    SelectedValue="{Binding EditorDueTime}" />
+
+                                <controls:TaskItemSelectorView
+                                    Grid.Column="4"
+                                    Label="是否提醒"
+                                    IsEnabled="{Binding CanSetEditorReminder}"
+                                    ItemsSource="{Binding ReminderOptions}"
+                                    SelectedItem="{Binding EditorReminderOption}" />
+                            </Grid>
+
+                            <!-- 第二行 -->
+
+                            <Grid Margin="0,12,0,0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="10" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="10" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+
+                                <controls:TaskValueSelectorView
+                                    Grid.Column="0"
+                                    Label="所属象限"
+                                    ItemsSource="{Binding MatrixQuadrantOptions}"
+                                    SelectedValue="{Binding EditorQuadrant}" />
+
+                                <controls:TaskValueSelectorView
+                                    Grid.Column="2"
+                                    Label="是否循环"
+                                    IsEnabled="{Binding CanSetEditorRepeat}"
+                                    ItemsSource="{Binding RepeatOptions}"
+                                    SelectedValue="{Binding EditorRepeatType}" />
+
+                                <!-- 删除任务：功能保持原样，只调整位置 -->
+
+                                <StackPanel Grid.Column="4">
+
+                                    <!--
+                                        空标题只负责占位，
+                                        让删除按钮与前两个 ComboBox 底边对齐。
+                                    -->
+
+                                    <TextBlock
+                                        Margin="0,0,0,6"
+                                        Text=" "
+                                        FontWeight="SemiBold" />
+
+                                    <Button
+                                        Height="38"
+                                        Style="{StaticResource TaskDangerActionButtonStyle}"
+                                        Content="删除任务"
+                                        Click="OnDeleteTaskDetailsClick" />
+                                </StackPanel>
+                            </Grid>
+                        </StackPanel>
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
+        </Popup>
+    </Grid>
+</UserControl>

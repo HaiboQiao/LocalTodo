@@ -1,0 +1,573 @@
+<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:models="clr-namespace:LocalTodo.Models">
+
+        <BooleanToVisibilityConverter
+            x:Key="BooleanToVisibilityConverter" />
+
+        <!--
+            四象限新增任务和任务详情的日期文字布局。
+        -->
+        <Style TargetType="{x:Type DatePickerTextBox}">
+            <Setter
+                Property="TextAlignment"
+                Value="Left" />
+
+            <Setter
+                Property="HorizontalContentAlignment"
+                Value="Left" />
+
+            <Setter
+                Property="VerticalContentAlignment"
+                Value="Center" />
+        </Style>
+
+        <!-- 四个象限外层卡片的统一样式 -->
+
+        <Style
+            x:Key="QuadrantCardStyle"
+            TargetType="{x:Type Border}">
+
+            <Setter
+                Property="Background"
+                Value="{StaticResource Brush.CardBackground}" />
+
+            <Setter
+                Property="BorderBrush"
+                Value="{StaticResource Brush.Border}" />
+
+            <Setter
+                Property="BorderThickness"
+                Value="1" />
+
+            <Setter
+                Property="CornerRadius"
+                Value="16" />
+
+            <Setter
+                Property="Padding"
+                Value="16" />
+
+            <Setter
+                Property="SnapsToDevicePixels"
+                Value="True" />
+
+        </Style>
+
+        <!-- 象限标题中的“＋ 添加”按钮 -->
+
+        <Style
+            x:Key="QuadrantAddButtonStyle"
+            TargetType="{x:Type Button}">
+
+            <Setter
+                Property="Padding"
+                Value="7,3" />
+
+            <Setter
+                Property="Background"
+                Value="Transparent" />
+
+            <Setter
+                Property="BorderThickness"
+                Value="0" />
+
+            <Setter
+                Property="Foreground"
+                Value="{StaticResource Brush.Primary}" />
+
+            <Setter
+                Property="Cursor"
+                Value="Hand" />
+
+            <Setter
+                Property="FocusVisualStyle"
+                Value="{x:Null}" />
+
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate
+                        TargetType="{x:Type Button}">
+
+                        <Border
+                            x:Name="ButtonBody"
+                            Padding="{TemplateBinding Padding}"
+                            Background="{TemplateBinding Background}"
+                            CornerRadius="8">
+
+                            <TextBlock
+                                Text="{TemplateBinding Content}"
+                                Foreground="{TemplateBinding Foreground}"
+                                FontSize="{TemplateBinding FontSize}"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center" />
+                        </Border>
+
+                        <ControlTemplate.Triggers>
+                            <Trigger
+                                Property="IsMouseOver"
+                                Value="True">
+
+                                <Setter
+                                    TargetName="ButtonBody"
+                                    Property="Background"
+                                    Value="{StaticResource Brush.PrimaryLight}" />
+                            </Trigger>
+
+                            <Trigger
+                                Property="IsPressed"
+                                Value="True">
+
+                                <Setter
+                                    TargetName="ButtonBody"
+                                    Property="Background"
+                                    Value="{StaticResource Brush.SurfaceSelected}" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!--
+            与“所有任务”页面保持一致的细竖向滚动条。
+            滚动条宽度和预留栏宽固定为 9，
+            出现滚动条时不会挤压任务内容。
+        -->
+
+        <Style
+            x:Key="MatrixThinVerticalScrollBarStyle"
+            TargetType="{x:Type ScrollBar}">
+
+            <Setter Property="Width" Value="9" />
+            <Setter Property="MinWidth" Value="9" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Opacity" Value="0.62" />
+            <Setter Property="Focusable" Value="False" />
+
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type ScrollBar}">
+                        <Grid
+                            Width="9"
+                            Background="Transparent"
+                            SnapsToDevicePixels="True">
+
+                            <Track
+                                x:Name="PART_Track"
+                                Focusable="False"
+                                IsDirectionReversed="True"
+                                Orientation="Vertical">
+
+                                <Track.DecreaseRepeatButton>
+
+                                    <RepeatButton
+                                        Background="Transparent"
+                                        BorderThickness="0"
+                                        Focusable="False"
+                                        IsTabStop="False"
+                                        Command="{x:Static ScrollBar.PageUpCommand}"
+                                        CommandTarget="{Binding RelativeSource={RelativeSource TemplatedParent}}">
+
+                                        <RepeatButton.Template>
+
+                                            <ControlTemplate
+                                                TargetType="{x:Type RepeatButton}">
+
+                                                <Border
+                                                    Background="Transparent"
+                                                    BorderThickness="0" />
+
+                                            </ControlTemplate>
+                                        </RepeatButton.Template>
+                                    </RepeatButton>
+                                </Track.DecreaseRepeatButton>
+
+                                <Track.Thumb>
+                                    <Thumb
+                                        MinHeight="32"
+                                        Margin="2,1"
+                                        Background="#C5C5C5">
+
+                                        <Thumb.Template>
+                                            <ControlTemplate TargetType="{x:Type Thumb}">
+                                                <Border
+                                                    x:Name="ThumbBody"
+                                                    Background="{TemplateBinding Background}"
+                                                    CornerRadius="3" />
+
+                                                <ControlTemplate.Triggers>
+                                                    <Trigger
+                                                        Property="IsMouseOver"
+                                                        Value="True">
+                                                        <Setter
+                                                            TargetName="ThumbBody"
+                                                            Property="Background"
+                                                            Value="#A8A8A8" />
+                                                    </Trigger>
+
+                                                    <Trigger
+                                                        Property="IsDragging"
+                                                        Value="True">
+                                                        <Setter
+                                                            TargetName="ThumbBody"
+                                                            Property="Background"
+                                                            Value="#909090" />
+                                                    </Trigger>
+                                                </ControlTemplate.Triggers>
+                                            </ControlTemplate>
+                                        </Thumb.Template>
+                                    </Thumb>
+                                </Track.Thumb>
+
+                                <Track.IncreaseRepeatButton>
+                                    <RepeatButton
+                                        Background="Transparent"
+                                        BorderThickness="0"
+                                        Focusable="False"
+                                        IsTabStop="False"
+                                        Command="{x:Static ScrollBar.PageDownCommand}"
+                                        CommandTarget="{Binding RelativeSource={RelativeSource TemplatedParent}}">
+
+                                        <RepeatButton.Template>
+
+                                            <ControlTemplate
+                                                TargetType="{x:Type RepeatButton}">
+
+                                                <Border
+                                                    Background="Transparent"
+                                                    BorderThickness="0" />
+
+                                            </ControlTemplate>
+                                        </RepeatButton.Template>
+                                    </RepeatButton>
+                                </Track.IncreaseRepeatButton>
+                            </Track>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+
+            <Style.Triggers>
+                <Trigger Property="IsEnabled" Value="False">
+                    <Setter Property="Opacity" Value="0.10" />
+                </Trigger>
+
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Opacity" Value="0.90" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <!--
+            ListBox 内部 ScrollViewer 的固定栏模板。
+            右侧始终预留 9 像素，因此滚动条出现时内容不会突然变窄。
+        -->
+
+        <Style
+            x:Key="MatrixAlignedVerticalScrollViewerStyle"
+            TargetType="{x:Type ScrollViewer}">
+
+            <Setter Property="VerticalScrollBarVisibility" Value="Visible" />
+            <Setter Property="HorizontalScrollBarVisibility" Value="Disabled" />
+            <Setter Property="PanningMode" Value="VerticalOnly" />
+            <Setter Property="Background" Value="Transparent" />
+
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type ScrollViewer}">
+                        <Grid
+                            Background="{TemplateBinding Background}"
+                            SnapsToDevicePixels="True">
+
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="9" />
+                            </Grid.ColumnDefinitions>
+
+                            <ScrollContentPresenter
+                                x:Name="PART_ScrollContentPresenter"
+                                Grid.Column="0"
+                                Margin="{TemplateBinding Padding}"
+                                CanContentScroll="{TemplateBinding CanContentScroll}"
+                                Content="{TemplateBinding Content}"
+                                ContentTemplate="{TemplateBinding ContentTemplate}"
+                                ContentStringFormat="{TemplateBinding ContentStringFormat}"
+                                SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
+
+                            <ScrollBar
+                                x:Name="PART_VerticalScrollBar"
+                                Grid.Column="1"
+                                Width="9"
+                                MinWidth="9"
+                                Focusable="False"
+                                Orientation="Vertical"
+                                Style="{StaticResource MatrixThinVerticalScrollBarStyle}"
+                                Visibility="{TemplateBinding ComputedVerticalScrollBarVisibility}"
+                                Maximum="{TemplateBinding ScrollableHeight}"
+                                ViewportSize="{TemplateBinding ViewportHeight}"
+                                Value="{Binding VerticalOffset,
+                                    RelativeSource={RelativeSource TemplatedParent},
+                                    Mode=OneWay}" />
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- 任务行容器：仅保留轻微悬停和选中背景，不再绘制卡片框。 -->
+
+        <Style
+            x:Key="MatrixTaskListItemStyle"
+            TargetType="{x:Type ListBoxItem}">
+
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="Margin" Value="0" />
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="VerticalContentAlignment" Value="Stretch" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderBrush" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+            <Setter Property="Focusable" Value="False" />
+            <Setter Property="IsTabStop" Value="False" />
+            <Setter Property="Cursor" Value="Arrow" />
+
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type ListBoxItem}">
+                        <Border
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            SnapsToDevicePixels="True">
+
+                            <ContentPresenter
+                                HorizontalAlignment="Stretch"
+                                VerticalAlignment="Center" />
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsDueToday}" Value="True">
+                    <Setter
+                        Property="Background"
+                        Value="{StaticResource Brush.TodayBackground}" />
+                    <Setter
+                        Property="BorderBrush"
+                        Value="{StaticResource Brush.TodayAccent}" />
+                    <Setter Property="BorderThickness" Value="3,0,0,0" />
+                </DataTrigger>
+
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="{StaticResource Brush.SurfaceHover}" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- 四个象限任务列表的统一样式和鼠标事件。 -->
+
+
+        <!-- 日期分组：已过期、今天、具体日期和无截止日期。 -->
+
+        <Style
+            x:Key="MatrixDateGroupItemStyle"
+            TargetType="{x:Type GroupItem}">
+
+            <Setter Property="Margin" Value="0,0,0,6" />
+
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type GroupItem}">
+                        <Expander
+                            IsExpanded="True"
+                            Background="Transparent"
+                            HorizontalContentAlignment="Stretch"
+                            Style="{StaticResource CompactDateGroupExpanderStyle}">
+
+                            <Expander.Header>
+                                <Grid
+                                    Margin="2,4,6,5"
+                                    HorizontalAlignment="Stretch">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+
+                                        <TextBlock
+                                            Grid.Column="0"
+                                            VerticalAlignment="Center"
+                                            Text="{Binding Name}">
+
+                                            <TextBlock.Style>
+                                                <Style TargetType="{x:Type TextBlock}">
+                                                    <Setter
+                                                        Property="Foreground"
+                                                        Value="{StaticResource Brush.TextPrimary}" />
+
+                                                    <Setter Property="FontSize" Value="14" />
+                                                    <Setter Property="FontWeight" Value="SemiBold" />
+
+                                                    <Style.Triggers>
+                                                        <DataTrigger
+                                                            Binding="{Binding Items[0].IsTodayGroup}"
+                                                            Value="True">
+
+                                                            <Setter
+                                                                Property="Foreground"
+                                                                Value="{StaticResource Brush.TodayAccent}" />
+                                                        </DataTrigger>
+
+                                                        <DataTrigger
+                                                            Binding="{Binding Name}"
+                                                            Value="已过期">
+
+                                                            <Setter
+                                                                Property="Foreground"
+                                                                Value="{StaticResource Brush.Danger}" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </TextBlock.Style>
+                                        </TextBlock>
+
+                                        <TextBlock
+                                            Grid.Column="1"
+                                            Margin="8,0,2,0"
+                                            VerticalAlignment="Center"
+                                            Text="{Binding ItemCount}"
+                                            FontSize="11"
+                                            Foreground="{StaticResource Brush.TextSecondary}" />
+                                </Grid>
+                            </Expander.Header>
+
+                            <ItemsPresenter
+                                Margin="10,0,4,0" />
+                        </Expander>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!--
+            四个象限共用的任务行。
+            与“所有任务”一致：复选框、重点星标、标题、日期；
+            不显示“第几象限”，每条任务仅用底部横线分隔。
+        -->
+
+        <DataTemplate
+            x:Key="MatrixTaskItemTemplate">
+
+            <Border
+                Padding="7,9"
+                Background="Transparent"
+                BorderBrush="{StaticResource Brush.Border}"
+                BorderThickness="0,0,0,1"
+                Cursor="Arrow"
+                SnapsToDevicePixels="True">
+
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <CheckBox
+                        Grid.Column="0"
+                        Margin="2,0,5,0"
+                        VerticalAlignment="Center"
+                        IsChecked="{Binding Task.IsCompleted, Mode=OneWay}"
+                        Command="{Binding DataContext.ToggleTaskCommand,
+                            RelativeSource={RelativeSource AncestorType=UserControl}}"
+                        CommandParameter="{Binding Task}"/>
+
+                    <ContentPresenter
+                        Grid.Column="1"
+                        Content="{Binding Task}"
+                        ContentTemplate="{StaticResource TaskListStatusMarkerTemplate}" />
+
+                    <TextBlock
+                        Grid.Column="2"
+                        Margin="0,0,10,0"
+                        VerticalAlignment="Center"
+                        Text="{Binding Task.Title}"
+                        TextTrimming="CharacterEllipsis"
+                        FontSize="13">
+
+                        <TextBlock.Style>
+                            <Style TargetType="{x:Type TextBlock}">
+                                <Setter
+                                    Property="Foreground"
+                                    Value="{StaticResource Brush.TextPrimary}" />
+                                <Setter Property="FontWeight" Value="Normal" />
+
+                                <Style.Triggers>
+                                    <DataTrigger
+                                        Binding="{Binding IsDueToday}"
+                                        Value="True">
+
+                                        <Setter
+                                            Property="Foreground"
+                                            Value="{StaticResource Brush.TodayAccent}" />
+                                        <Setter Property="FontWeight" Value="SemiBold" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+
+                    <TextBlock
+                        Grid.Column="3"
+                        MinWidth="72"
+                        HorizontalAlignment="Right"
+                        VerticalAlignment="Center"
+                        Text="{Binding Task.DueDateText}"
+                        TextAlignment="Right"
+                        FontSize="11">
+
+                        <TextBlock.Style>
+                            <Style TargetType="{x:Type TextBlock}">
+                                <Setter
+                                    Property="Foreground"
+                                    Value="{StaticResource Brush.TextSecondary}" />
+
+                                <Style.Triggers>
+                                    <DataTrigger
+                                        Binding="{Binding IsDueToday}"
+                                        Value="True">
+
+                                        <Setter
+                                            Property="Foreground"
+                                            Value="{StaticResource Brush.TodayAccent}" />
+
+                                        <Setter
+                                            Property="FontWeight"
+                                            Value="SemiBold" />
+                                    </DataTrigger>
+
+                                    <DataTrigger
+                                        Binding="{Binding Task.IsOverdue}"
+                                        Value="True">
+
+                                        <Setter
+                                            Property="Foreground"
+                                            Value="{StaticResource Brush.Danger}" />
+
+                                        <Setter
+                                            Property="FontWeight"
+                                            Value="SemiBold" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+                </Grid>
+            </Border>
+        </DataTemplate>
+
+</ResourceDictionary>

@@ -1,0 +1,180 @@
+<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- 现代浅色视觉系统：低饱和背景、清晰内容面、单一蓝色强调。 -->
+    <Color x:Key="Color.WindowBackground">#F3F5F8</Color>
+    <Color x:Key="Color.SidebarBackground">#F8FAFC</Color>
+    <Color x:Key="Color.CardBackground">#FFFFFF</Color>
+    <Color x:Key="Color.SurfaceSubtle">#F8FAFC</Color>
+    <Color x:Key="Color.SurfaceHover">#F1F5F9</Color>
+    <Color x:Key="Color.SurfacePressed">#E8EEF5</Color>
+    <Color x:Key="Color.SurfaceSelected">#E8F0FE</Color>
+    <!-- 全局强调色继续服务于导航、焦点和状态表达。 -->
+    <Color x:Key="Color.Primary">#2563EB</Color>
+    <Color x:Key="Color.PrimaryHover">#1D4ED8</Color>
+    <Color x:Key="Color.PrimaryPressed">#1E40AF</Color>
+    <Color x:Key="Color.PrimaryLight">#E8F0FF</Color>
+    <!--
+        “今天”使用独立的蓝色语义色：
+        比普通任务更醒目，同时与代表异常状态的逾期红色保持区分。
+    -->
+    <Color x:Key="Color.TodayAccent">#2457C5</Color>
+    <Color x:Key="Color.TodayBackground">#ECF3FF</Color>
+    <Color x:Key="Color.TextPrimary">#182033</Color>
+    <Color x:Key="Color.TextSecondary">#667085</Color>
+    <Color x:Key="Color.TextMuted">#98A2B3</Color>
+    <Color x:Key="Color.Border">#E2E7EF</Color>
+    <Color x:Key="Color.BorderStrong">#D0D8E4</Color>
+    <Color x:Key="Color.EditorBorder">#E5E7EB</Color>
+    <!-- 任务操作按钮按参考图独立配色，不影响导航和状态语义。 -->
+    <Color x:Key="Color.TaskActionPrimary">#2563EB</Color>
+    <Color x:Key="Color.TaskActionPrimaryHover">#1D4ED8</Color>
+    <Color x:Key="Color.TaskActionPrimaryPressed">#1E40AF</Color>
+    <Color x:Key="Color.TaskActionPrimaryForeground">#FFFFFF</Color>
+    <Color x:Key="Color.TaskActionDanger">#FFFFFF</Color>
+    <Color x:Key="Color.TaskActionDangerHover">#FFF7F7</Color>
+    <Color x:Key="Color.TaskActionDangerPressed">#FEE2E2</Color>
+    <Color x:Key="Color.TaskActionDangerForeground">#B91C1C</Color>
+    <Color x:Key="Color.TaskActionDangerBorder">#FCA5A5</Color>
+
+    <!-- 危险语义色仍用于校验、逾期等非按钮场景。 -->
+    <Color x:Key="Color.Danger">#B91C1C</Color>
+    <Color x:Key="Color.DangerLight">#FFFFFF</Color>
+    <Color x:Key="Color.DangerBorder">#FCA5A5</Color>
+    <Color x:Key="Color.Warning">#C26A0A</Color>
+    <Color x:Key="Color.Success">#16845B</Color>
+
+    <SolidColorBrush
+        x:Key="Brush.WindowBackground"
+        Color="{StaticResource Color.WindowBackground}" />
+
+    <SolidColorBrush
+        x:Key="Brush.SidebarBackground"
+        Color="{StaticResource Color.SidebarBackground}" />
+
+    <SolidColorBrush
+        x:Key="Brush.CardBackground"
+        Color="{StaticResource Color.CardBackground}" />
+
+    <SolidColorBrush
+        x:Key="Brush.SurfaceSubtle"
+        Color="{StaticResource Color.SurfaceSubtle}" />
+
+    <SolidColorBrush
+        x:Key="Brush.SurfaceHover"
+        Color="{StaticResource Color.SurfaceHover}" />
+
+    <SolidColorBrush
+        x:Key="Brush.SurfacePressed"
+        Color="{StaticResource Color.SurfacePressed}" />
+
+    <SolidColorBrush
+        x:Key="Brush.SurfaceSelected"
+        Color="{StaticResource Color.SurfaceSelected}" />
+
+    <SolidColorBrush
+        x:Key="Brush.Primary"
+        Color="{StaticResource Color.Primary}" />
+
+    <SolidColorBrush
+        x:Key="Brush.PrimaryLight"
+        Color="{StaticResource Color.PrimaryLight}" />
+
+    <SolidColorBrush
+        x:Key="Brush.PrimaryHover"
+        Color="{StaticResource Color.PrimaryHover}" />
+
+    <SolidColorBrush
+        x:Key="Brush.PrimaryPressed"
+        Color="{StaticResource Color.PrimaryPressed}" />
+
+    <SolidColorBrush
+        x:Key="Brush.TodayAccent"
+        Color="{StaticResource Color.TodayAccent}" />
+
+    <SolidColorBrush
+        x:Key="Brush.TodayBackground"
+        Color="{StaticResource Color.TodayBackground}" />
+
+    <SolidColorBrush
+        x:Key="Brush.TextPrimary"
+        Color="{StaticResource Color.TextPrimary}" />
+
+    <SolidColorBrush
+        x:Key="Brush.TextSecondary"
+        Color="{StaticResource Color.TextSecondary}" />
+
+    <SolidColorBrush
+        x:Key="Brush.TextMuted"
+        Color="{StaticResource Color.TextMuted}" />
+
+    <SolidColorBrush
+        x:Key="Brush.Border"
+        Color="{StaticResource Color.Border}" />
+
+    <SolidColorBrush
+        x:Key="Brush.BorderStrong"
+        Color="{StaticResource Color.BorderStrong}" />
+
+    <SolidColorBrush
+        x:Key="Brush.EditorBorder"
+        Color="{StaticResource Color.EditorBorder}" />
+
+    <SolidColorBrush
+        x:Key="Brush.TaskActionPrimary"
+        Color="{StaticResource Color.TaskActionPrimary}" />
+
+    <SolidColorBrush
+        x:Key="Brush.TaskActionPrimaryHover"
+        Color="{StaticResource Color.TaskActionPrimaryHover}" />
+
+    <SolidColorBrush
+        x:Key="Brush.TaskActionPrimaryPressed"
+        Color="{StaticResource Color.TaskActionPrimaryPressed}" />
+
+    <SolidColorBrush
+        x:Key="Brush.TaskActionPrimaryForeground"
+        Color="{StaticResource Color.TaskActionPrimaryForeground}" />
+
+    <SolidColorBrush
+        x:Key="Brush.TaskActionDanger"
+        Color="{StaticResource Color.TaskActionDanger}" />
+
+    <SolidColorBrush
+        x:Key="Brush.TaskActionDangerHover"
+        Color="{StaticResource Color.TaskActionDangerHover}" />
+
+    <SolidColorBrush
+        x:Key="Brush.TaskActionDangerPressed"
+        Color="{StaticResource Color.TaskActionDangerPressed}" />
+
+    <SolidColorBrush
+        x:Key="Brush.TaskActionDangerForeground"
+        Color="{StaticResource Color.TaskActionDangerForeground}" />
+
+    <SolidColorBrush
+        x:Key="Brush.TaskActionDangerBorder"
+        Color="{StaticResource Color.TaskActionDangerBorder}" />
+
+    <SolidColorBrush
+        x:Key="Brush.Danger"
+        Color="{StaticResource Color.Danger}" />
+
+    <SolidColorBrush
+        x:Key="Brush.DangerLight"
+        Color="{StaticResource Color.DangerLight}" />
+
+    <SolidColorBrush
+        x:Key="Brush.DangerBorder"
+        Color="{StaticResource Color.DangerBorder}" />
+
+    <SolidColorBrush
+        x:Key="Brush.Warning"
+        Color="{StaticResource Color.Warning}" />
+
+    <SolidColorBrush
+        x:Key="Brush.Success"
+        Color="{StaticResource Color.Success}" />
+
+</ResourceDictionary>

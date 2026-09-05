@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/LocalTodo/LocalTodo.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/LocalTodo.Tests/LocalTodo.Tests.csproj" />
+  </Folder>
+  <Folder Name="/解决方案项/">
+    <File Path="README.md" />
+  </Folder>
+</Solution>

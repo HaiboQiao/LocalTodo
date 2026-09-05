@@ -1,0 +1,951 @@
+<UserControl
+    x:Class="LocalTodo.Views.DesktopTaskListView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="clr-namespace:LocalTodo.Views.Controls"
+    xmlns:models="clr-namespace:LocalTodo.Models"
+    xmlns:viewModels="clr-namespace:LocalTodo.ViewModels"
+    UseLayoutRounding="True"
+    SnapsToDevicePixels="True"
+    Loaded="OnDesktopTaskListViewLoaded"
+    Unloaded="OnDesktopTaskListViewUnloaded">
+
+    <UserControl.Resources>
+        <ResourceDictionary Source="Resources/DesktopTaskListViewResources.xaml" />
+    </UserControl.Resources>
+
+
+    <Grid
+        Background="{StaticResource Brush.WindowBackground}">
+
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="12" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!--
+    顶部标题区。
+
+    第一行：
+    “待办任务”
+
+    第二行：
+    “共 X 项待办” 与 “＋ 添加”
+
+    添加按钮和任务数量真正处于同一行。
+-->
+        <Grid Grid.Row="0">
+
+            <Grid.RowDefinitions>
+
+                <!-- 主标题 -->
+                <RowDefinition Height="Auto" />
+
+                <!-- 任务数量 + 添加按钮 -->
+                <RowDefinition Height="Auto" />
+
+            </Grid.RowDefinitions>
+
+            <Grid.ColumnDefinitions>
+
+                <!-- 左侧文字 -->
+                <ColumnDefinition Width="*" />
+
+                <!-- 右侧添加按钮 -->
+                <ColumnDefinition Width="Auto" />
+
+            </Grid.ColumnDefinitions>
+
+            <!-- 第二行：当前任务数量 -->
+            <TextBlock
+                Grid.Row="1"
+                Grid.Column="0"
+                Margin="0,4,0,0"
+                VerticalAlignment="Center"
+                Text="{Binding TaskCountText}"
+                FontSize="12"
+                Foreground="{StaticResource Brush.TextSecondary}" />
+
+
+            <!-- 第二行：添加任务 -->
+            <Button
+                x:Name="OpenQuickAddButton"
+                Grid.Row="1"
+                Grid.Column="1"
+                Margin="6,4,2,0"
+                VerticalAlignment="Center"
+                Style="{StaticResource DesktopTaskAddButtonStyle}"
+                Content="＋ 添加"
+                Click="OnOpenQuickAddClick" />
+
+        </Grid>
+
+
+        <!-- 任务列表 -->
+        <Border
+            Grid.Row="2"
+            Padding="10"
+            Style="{StaticResource CardStyle}">
+
+            <Grid>
+
+                <!-- 没有任务 -->
+                <StackPanel
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center">
+
+                    <StackPanel.Style>
+                        <Style
+                            TargetType="{x:Type StackPanel}">
+
+                            <Setter
+                                Property="Visibility"
+                                Value="Collapsed" />
+
+                            <Style.Triggers>
+
+                                <DataTrigger
+                                    Binding="{Binding HasTasks}"
+                                    Value="False">
+
+                                    <Setter
+                                        Property="Visibility"
+                                        Value="Visible" />
+
+                                </DataTrigger>
+
+                            </Style.Triggers>
+
+                        </Style>
+                    </StackPanel.Style>
+
+                    <TextBlock
+                        HorizontalAlignment="Center"
+                        Text="当前没有待办任务"
+                        FontSize="15"
+                        FontWeight="SemiBold"
+                        Foreground="{StaticResource Brush.TextSecondary}" />
+
+                    <TextBlock
+                        Margin="0,6,0,0"
+                        HorizontalAlignment="Center"
+                        Text="点击右上角“＋ 添加”创建任务"
+                        FontSize="12"
+                        Foreground="{StaticResource Brush.TextSecondary}" />
+
+                </StackPanel>
+
+
+                <!-- 有任务 -->
+                <ListBox
+                    ItemsSource="{Binding TaskEntriesView}"
+                    ItemContainerStyle="{StaticResource DesktopTaskListItemStyle}"
+                    Background="Transparent"
+                    BorderThickness="0"
+                    ScrollViewer.VerticalScrollBarVisibility="Auto"
+                    ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+
+                    <ListBox.Resources>
+
+                        <Style
+                            TargetType="{x:Type ScrollViewer}"
+                            BasedOn="{StaticResource DesktopAlignedVerticalScrollViewerStyle}" />
+
+                    </ListBox.Resources>
+
+                    <ListBox.Style>
+                        <Style
+                            TargetType="{x:Type ListBox}">
+
+                            <Setter
+                                Property="Visibility"
+                                Value="Visible" />
+
+                            <Style.Triggers>
+
+                                <DataTrigger
+                                    Binding="{Binding HasTasks}"
+                                    Value="False">
+
+                                    <Setter
+                                        Property="Visibility"
+                                        Value="Collapsed" />
+
+                                </DataTrigger>
+
+                            </Style.Triggers>
+
+                        </Style>
+                    </ListBox.Style>
+
+                    <!--
+                        与“所有任务”一致的日期分组标题。
+                    -->
+                    <ListBox.GroupStyle>
+
+                        <GroupStyle>
+
+                            <GroupStyle.ContainerStyle>
+
+                                <Style
+                                    TargetType="{x:Type GroupItem}">
+
+                                    <Setter
+                                        Property="Margin"
+                                        Value="0,0,0,8" />
+
+                                    <Setter Property="Template">
+                                        <Setter.Value>
+
+                                            <ControlTemplate
+                                                TargetType="{x:Type GroupItem}">
+
+                                                <Expander
+                                                    IsExpanded="True"
+                                                    Background="Transparent"
+                                                    HorizontalContentAlignment="Stretch">
+
+                                                    <!--
+                                                        普通日期使用灰色图标；
+                                                        今天使用蓝色图标；
+                                                        已过期组使用红色图标。
+                                                    -->
+                                                    <Expander.Style>
+
+                                                        <Style
+                                                            TargetType="{x:Type Expander}"
+                                                            BasedOn="{StaticResource DesktopDateGroupExpanderStyle}">
+
+                                                            <Setter
+                                                                Property="Foreground"
+                                                                Value="{StaticResource Brush.TextSecondary}" />
+
+                                                            <Style.Triggers>
+
+                                                                <DataTrigger
+                                                                    Binding="{Binding Items[0].IsTodayGroup}"
+                                                                    Value="True">
+
+                                                                    <Setter
+                                                                        Property="Foreground"
+                                                                        Value="{StaticResource Brush.TodayAccent}" />
+
+                                                                </DataTrigger>
+
+                                                                <DataTrigger
+                                                                    Binding="{Binding Name}"
+                                                                    Value="已过期">
+
+                                                                    <Setter
+                                                                        Property="Foreground"
+                                                                        Value="{StaticResource Brush.Danger}" />
+
+                                                                </DataTrigger>
+
+                                                            </Style.Triggers>
+
+                                                        </Style>
+
+                                                    </Expander.Style>
+
+
+                                                    <Expander.Header>
+
+                                                        <Grid
+                                                            Margin="2,5,8,7"
+                                                            HorizontalAlignment="Stretch">
+                                                                <Grid.ColumnDefinitions>
+
+                                                                    <ColumnDefinition Width="*" />
+
+                                                                    <ColumnDefinition Width="Auto" />
+
+                                                                </Grid.ColumnDefinitions>
+
+
+                                                                <!-- 分组标题 -->
+                                                                <TextBlock
+                                                                    Grid.Column="0"
+                                                                    VerticalAlignment="Center"
+                                                                    Text="{Binding Name}">
+
+                                                                    <TextBlock.Style>
+
+                                                                        <Style
+                                                                            TargetType="{x:Type TextBlock}">
+
+                                                                            <Setter
+                                                                                Property="Foreground"
+                                                                                Value="{StaticResource Brush.TextPrimary}" />
+
+                                                                            <Setter Property="FontSize" Value="15" />
+                                                                            <Setter Property="FontWeight" Value="SemiBold" />
+
+                                                                            <!--
+                                                                                注意：
+                                                                                TaskListEntry 实际生成的是
+                                                                                “已过期”，不是“已逾期”。
+                                                                            -->
+                                                                            <Style.Triggers>
+
+                                                                                <DataTrigger
+                                                                                    Binding="{Binding Items[0].IsTodayGroup}"
+                                                                                    Value="True">
+
+                                                                                    <Setter
+                                                                                        Property="Foreground"
+                                                                                        Value="{StaticResource Brush.TodayAccent}" />
+                                                                                </DataTrigger>
+
+                                                                                <DataTrigger
+                                                                                    Binding="{Binding Name}"
+                                                                                    Value="已过期">
+
+                                                                                    <Setter
+                                                                                        Property="Foreground"
+                                                                                        Value="{StaticResource Brush.Danger}" />
+
+                                                                                </DataTrigger>
+
+                                                                            </Style.Triggers>
+
+                                                                        </Style>
+
+                                                                    </TextBlock.Style>
+
+                                                                </TextBlock>
+
+
+                                                                <!-- 当前分组任务数量 -->
+                                                                <TextBlock
+                                                                    Grid.Column="1"
+                                                                    Margin="10,0,2,0"
+                                                                    VerticalAlignment="Center"
+                                                                    Text="{Binding ItemCount}"
+                                                                    FontSize="12"
+                                                                    Foreground="{StaticResource Brush.TextSecondary}" />
+
+                                                        </Grid>
+
+                                                    </Expander.Header>
+
+
+                                                    <ItemsPresenter
+                                                        Margin="12,0,6,0" />
+
+                                                </Expander>
+
+                                            </ControlTemplate>
+
+                                        </Setter.Value>
+                                    </Setter>
+
+                                </Style>
+
+                            </GroupStyle.ContainerStyle>
+
+                        </GroupStyle>
+
+                    </ListBox.GroupStyle>
+
+                    <!-- 一条任务 -->
+                    <ListBox.ItemTemplate>
+
+                        <DataTemplate
+                            DataType="{x:Type viewModels:TaskListEntry}">
+
+                            <Grid>
+
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+
+                                <!-- 完成框 -->
+                                <CheckBox
+                                    Grid.Column="0"
+                                    Margin="2,0,5,0"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    IsChecked="{Binding Task.IsCompleted,
+                                        Mode=OneWay}"
+                                    Tag="{Binding Task}"
+                                    Cursor="Hand"
+                                    Click="OnTaskCompletionClick" />
+
+                                <!-- 点击任务打开详情 -->
+                                <Button
+                                    Grid.Column="1"
+                                    Style="{StaticResource DesktopTaskRowButtonStyle}"
+                                    Tag="{Binding Task}"
+                                    Click="OnOpenTaskDetailsClick">
+
+                                    <Grid>
+
+                                        <Grid.ColumnDefinitions>
+
+                                            <!-- 重点星标 -->
+                                            <ColumnDefinition Width="Auto" />
+
+                                            <!-- 任务标题，占剩余空间 -->
+                                            <ColumnDefinition Width="*" />
+
+                                            <!-- 象限 -->
+                                            <ColumnDefinition Width="Auto" />
+
+                                            <!-- 截止日期 -->
+                                            <ColumnDefinition Width="Auto" />
+
+                                        </Grid.ColumnDefinitions>
+
+                                        <!-- 重点 / 循环状态 -->
+                                        <ContentPresenter
+                                            Grid.Column="0"
+                                            Content="{Binding Task}"
+                                            ContentTemplate="{StaticResource TaskListStatusMarkerTemplate}" />
+
+                                        <!-- 标题 -->
+                                        <TextBlock
+                                            Grid.Column="1"
+                                            Margin="0,0,8,0"
+                                            VerticalAlignment="Center"
+                                            Text="{Binding Task.Title}"
+                                            FontSize="13"
+                                            TextTrimming="CharacterEllipsis">
+
+                                            <TextBlock.Style>
+
+                                                <Style
+                                                    TargetType="{x:Type TextBlock}">
+
+                                                    <Setter
+                                                        Property="Foreground"
+                                                        Value="{StaticResource Brush.TextPrimary}" />
+
+                                                    <Style.Triggers>
+
+                                                        <DataTrigger
+                                                            Binding="{Binding IsDueToday}"
+                                                            Value="True">
+
+                                                            <Setter
+                                                                Property="Foreground"
+                                                                Value="{StaticResource Brush.TodayAccent}" />
+
+                                                            <Setter
+                                                                Property="FontWeight"
+                                                                Value="SemiBold" />
+
+                                                        </DataTrigger>
+
+                                                        <MultiDataTrigger>
+
+                                                            <MultiDataTrigger.Conditions>
+                                                                <Condition
+                                                                    Binding="{Binding Task.IsOverdue}"
+                                                                    Value="True" />
+
+                                                                <Condition
+                                                                    Binding="{Binding IsDueToday}"
+                                                                    Value="False" />
+                                                            </MultiDataTrigger.Conditions>
+
+                                                            <Setter
+                                                                Property="Foreground"
+                                                                Value="{StaticResource Brush.Danger}" />
+
+                                                        </MultiDataTrigger>
+
+                                                    </Style.Triggers>
+
+                                                </Style>
+
+                                            </TextBlock.Style>
+
+                                        </TextBlock>
+
+                                        <!--
+                                            四象限简写。
+
+                                            显示内容来自：
+                                            Task.QuadrantListText
+
+                                            即：
+                                            Ⅰ / Ⅱ / Ⅲ / Ⅳ
+
+                                            是否显示由 DesktopTaskListViewModel
+                                            的 ShowQuadrantAbbreviations 统一控制。
+                                        -->
+                                        <TextBlock
+                                            Grid.Column="2"
+                                            MinWidth="50"
+                                            Margin="8,0,10,0"
+                                            HorizontalAlignment="Right"
+                                            VerticalAlignment="Center"
+                                            Text="{Binding Task.QuadrantListText}"
+                                            TextAlignment="Right"
+                                            FontSize="11"
+                                            Foreground="{StaticResource Brush.TextSecondary}"
+                                            Visibility="{Binding
+                                                DataContext.ShowQuadrantAbbreviations,
+                                                RelativeSource={RelativeSource AncestorType=UserControl},
+                                                Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                        <!-- 截止日期 -->
+                                        <TextBlock
+                                            Grid.Column="3"
+                                            MinWidth="78"
+                                            Margin="0,0,2,0"
+                                            HorizontalAlignment="Right"
+                                            VerticalAlignment="Center"
+                                            Text="{Binding Task.DueDateText}"
+                                            TextAlignment="Right"
+                                            FontSize="11">
+
+                                            <TextBlock.Style>
+
+                                                <Style
+                                                    TargetType="{x:Type TextBlock}">
+
+                                                    <Setter
+                                                        Property="Foreground"
+                                                        Value="{StaticResource Brush.TextSecondary}" />
+
+                                                    <!-- 逾期日期显示红色 -->
+                                                    <Style.Triggers>
+
+                                                        <DataTrigger
+                                                            Binding="{Binding IsDueToday}"
+                                                            Value="True">
+
+                                                            <Setter
+                                                                Property="Foreground"
+                                                                Value="{StaticResource Brush.TodayAccent}" />
+
+                                                            <Setter
+                                                                Property="FontWeight"
+                                                                Value="SemiBold" />
+
+                                                        </DataTrigger>
+
+                                                        <DataTrigger
+                                                            Binding="{Binding Task.IsOverdue}"
+                                                            Value="True">
+
+                                                            <Setter
+                                                                Property="Foreground"
+                                                                Value="{StaticResource Brush.Danger}" />
+
+                                                            <Setter
+                                                                Property="FontWeight"
+                                                                Value="SemiBold" />
+
+                                                        </DataTrigger>
+
+                                                    </Style.Triggers>
+
+                                                </Style>
+
+                                            </TextBlock.Style>
+
+                                        </TextBlock>
+
+                                    </Grid>
+
+                                </Button>
+
+                            </Grid>
+
+                        </DataTemplate>
+
+                    </ListBox.ItemTemplate>
+
+                </ListBox>
+
+            </Grid>
+
+        </Border>
+
+
+        <!-- ======================== -->
+        <!-- 快速新增 Popup           -->
+        <!-- ======================== -->
+
+        <Popup
+            x:Name="QuickAddPopup"
+            AllowsTransparency="True"
+            Placement="Bottom"
+            HorizontalOffset="0"
+            VerticalOffset="6"
+            StaysOpen="True"
+            PopupAnimation="Fade">
+
+            <Border
+                x:Name="QuickAddPopupRoot"
+                Width="400"
+                MaxHeight="620"
+                Style="{StaticResource PopupCardStyle}"
+                PreviewMouseLeftButtonDown=
+                    "OnQuickAddPopupPreviewMouseLeftButtonDown">
+
+                <ScrollViewer
+                    VerticalScrollBarVisibility="Auto"
+                    HorizontalScrollBarVisibility="Disabled">
+
+                    <StackPanel>
+
+                        <!-- 标题 -->
+                        <Grid>
+
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock
+                                Grid.Column="0"
+                                VerticalAlignment="Center"
+                                Text="新增任务"
+                                Style="{StaticResource TaskPopupHeadingTextStyle}" />
+
+                            <Button
+                                Grid.Column="1"
+                                Width="28"
+                                Height="28"
+                                Padding="0"
+                                Background="Transparent"
+                                BorderThickness="0"
+                                Cursor="Hand"
+                                Content="×"
+                                FontSize="18"
+                                Foreground="{StaticResource Brush.TextSecondary}"
+                                Click="OnCloseQuickAddClick" />
+
+                        </Grid>
+
+
+                        <!-- 标题 + 重点 -->
+                        <Grid Margin="0,16,0,0">
+
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock
+                                Grid.Column="0"
+                                VerticalAlignment="Center"
+                                Text="任务标题"
+                                FontWeight="SemiBold" />
+
+                            <StackPanel
+                                Grid.Column="1"
+                                VerticalAlignment="Center"
+                                Orientation="Horizontal">
+                                <CheckBox
+                                    Margin="0,0,14,0"
+                                    VerticalAlignment="Center"
+                                    Style="{StaticResource ImportantTaskCheckBoxStyle}"
+                                    Content="标记为持续日期"
+                                    IsChecked="{Binding NewTaskIsContinuous,
+                                        Mode=TwoWay,
+                                        UpdateSourceTrigger=PropertyChanged}"
+                                    IsEnabled="{Binding CanSetNewTaskContinuous}" />
+                                <CheckBox
+                                    VerticalAlignment="Center"
+                                    Style="{StaticResource ImportantTaskCheckBoxStyle}"
+                                    Content="标记为重点任务"
+                                    IsChecked="{Binding NewTaskIsImportant,
+                                        Mode=TwoWay,
+                                        UpdateSourceTrigger=PropertyChanged}" />
+                            </StackPanel>
+
+                        </Grid>
+
+                        <TextBox
+                            x:Name="QuickAddTitleTextBox"
+                            Style="{StaticResource TaskEditorTextBoxStyle}"
+                            Height="40"
+                            Margin="0,6,0,0"
+                            Padding="9,5"
+                            VerticalContentAlignment="Center"
+                            Text="{Binding NewTaskTitle,
+                                Mode=TwoWay,
+                                UpdateSourceTrigger=PropertyChanged}" />
+
+
+                        <!-- 说明 -->
+                        <TextBlock
+                            Margin="0,14,0,6"
+                            Text="任务说明"
+                            FontWeight="SemiBold" />
+
+                        <TextBox
+                            Style="{StaticResource TaskEditorTextBoxStyle}"
+                            MinHeight="120"
+                            MaxHeight="230"
+                            Padding="9"
+                            AcceptsReturn="True"
+                            AcceptsTab="True"
+                            TextWrapping="Wrap"
+                            VerticalScrollBarVisibility="Auto"
+                            Text="{Binding NewTaskDescription,
+                                Mode=TwoWay,
+                                UpdateSourceTrigger=PropertyChanged}" />
+
+
+                        <!-- 象限 + 日期 + 添加 -->
+                        <Grid Margin="0,14,0,0">
+
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="130" />
+                                <ColumnDefinition Width="14" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <controls:TaskValueSelectorView
+                                Grid.Column="0"
+                                Label="所属象限"
+                                ItemsSource="{Binding QuadrantOptions}"
+                                SelectedValue="{Binding NewTaskQuadrant}" />
+
+                            <StackPanel Grid.Column="2">
+
+                                <TextBlock
+                                    Margin="0,0,0,6"
+                                    Text="截止日期"
+                                    FontWeight="SemiBold" />
+
+                                <Grid>
+
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <DatePicker
+                                        Grid.Column="0"
+                                        Height="38"
+                                        VerticalContentAlignment="Center"
+                                        SelectedDate="{Binding NewTaskDueDate,
+                                            Mode=TwoWay,
+                                            UpdateSourceTrigger=PropertyChanged}" />
+
+                                    <Button
+                                        Grid.Column="1"
+                                        Width="90"
+                                        Height="38"
+                                        Margin="6,0,0,0"
+                                        Style="{StaticResource TaskPrimaryActionButtonStyle}"
+                                        Content="添加任务"
+                                        Click="OnConfirmQuickAddClick" />
+
+                                </Grid>
+
+                            </StackPanel>
+
+                        </Grid>
+
+                    </StackPanel>
+
+                </ScrollViewer>
+
+            </Border>
+
+        </Popup>
+
+
+        <!-- ======================== -->
+        <!-- 任务详情 Popup           -->
+        <!-- ======================== -->
+
+        <Popup
+            x:Name="TaskDetailsPopup"
+            AllowsTransparency="True"
+            Placement="MousePoint"
+            HorizontalOffset="12"
+            VerticalOffset="12"
+            StaysOpen="False"
+            PopupAnimation="Fade"
+            Closed="OnTaskDetailsPopupClosed">
+
+            <Border
+                x:Name="TaskDetailsPopupRoot"
+                Width="400"
+                MaxHeight="620"
+                Style="{StaticResource PopupCardStyle}">
+
+                <ScrollViewer
+                    VerticalScrollBarVisibility="Auto"
+                    HorizontalScrollBarVisibility="Disabled">
+
+                    <StackPanel>
+
+                        <!-- 顶部 -->
+                        <Grid>
+
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock
+                                Grid.Column="0"
+                                VerticalAlignment="Center"
+                                Text="任务详情"
+                                Style="{StaticResource TaskPopupHeadingTextStyle}" />
+
+                            <Button
+                                Grid.Column="1"
+                                Width="28"
+                                Height="28"
+                                Padding="0"
+                                Background="Transparent"
+                                BorderThickness="0"
+                                Cursor="Hand"
+                                Content="×"
+                                FontSize="18"
+                                Foreground="{StaticResource Brush.TextSecondary}"
+                                Click="OnCloseTaskDetailsClick" />
+
+                        </Grid>
+
+                        <TextBlock
+                            Margin="0,6,0,0"
+                            Text="{Binding StatusMessage}"
+                            FontSize="13"
+                            Foreground="{StaticResource Brush.TextSecondary}"
+                            TextWrapping="Wrap" />
+
+                        <!-- 标题 + 重点 -->
+                        <Grid Margin="0,16,0,0">
+
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock
+                                Grid.Column="0"
+                                VerticalAlignment="Center"
+                                Text="任务标题"
+                                FontWeight="SemiBold" />
+
+                            <StackPanel
+                                Grid.Column="1"
+                                VerticalAlignment="Center"
+                                Orientation="Horizontal">
+                                <CheckBox
+                                    Margin="0,0,14,0"
+                                    VerticalAlignment="Center"
+                                    Style="{StaticResource ImportantTaskCheckBoxStyle}"
+                                    Content="标记为持续日期"
+                                    IsChecked="{Binding EditorIsContinuous,
+                                        Mode=TwoWay,
+                                        UpdateSourceTrigger=PropertyChanged}"
+                                    IsEnabled="{Binding CanSetEditorContinuous}" />
+                                <CheckBox
+                                    VerticalAlignment="Center"
+                                    Style="{StaticResource ImportantTaskCheckBoxStyle}"
+                                    Content="标记为重点任务"
+                                    IsChecked="{Binding EditorIsImportant,
+                                        Mode=TwoWay,
+                                        UpdateSourceTrigger=PropertyChanged}" />
+                            </StackPanel>
+
+                        </Grid>
+
+                        <TextBox
+                            Style="{StaticResource TaskEditorTextBoxStyle}"
+                            Height="40"
+                            Margin="0,6,0,0"
+                            Padding="9,5"
+                            VerticalContentAlignment="Center"
+                            Text="{Binding EditorTitle,
+                                Mode=TwoWay,
+                                UpdateSourceTrigger=PropertyChanged}" />
+
+
+                        <!-- 说明 -->
+                        <TextBlock
+                            Margin="0,14,0,6"
+                            Text="任务说明"
+                            FontWeight="SemiBold" />
+
+                        <TextBox
+                            Style="{StaticResource TaskEditorTextBoxStyle}"
+                            MinHeight="120"
+                            MaxHeight="230"
+                            Padding="9"
+                            AcceptsReturn="True"
+                            AcceptsTab="True"
+                            TextWrapping="Wrap"
+                            VerticalScrollBarVisibility="Auto"
+                            Text="{Binding EditorDescription,
+                                Mode=TwoWay,
+                                UpdateSourceTrigger=PropertyChanged}" />
+
+
+                        <!-- 象限 + 日期 + 删除 -->
+                        <Grid Margin="0,14,0,0">
+
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="130" />
+                                <ColumnDefinition Width="14" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <controls:TaskValueSelectorView
+                                Grid.Column="0"
+                                Label="所属象限"
+                                ItemsSource="{Binding QuadrantOptions}"
+                                SelectedValue="{Binding EditorQuadrant}" />
+
+                            <StackPanel Grid.Column="2">
+
+                                <TextBlock
+                                    Margin="0,0,0,6"
+                                    Text="截止日期"
+                                    FontWeight="SemiBold" />
+
+                                <Grid>
+
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <DatePicker
+                                        Grid.Column="0"
+                                        Height="38"
+                                        VerticalContentAlignment="Center"
+                                        SelectedDate="{Binding EditorDueDate,
+                                            Mode=TwoWay,
+                                            UpdateSourceTrigger=PropertyChanged}" />
+
+                                    <Button
+                                        Grid.Column="1"
+                                        Width="90"
+                                        Height="38"
+                                        Margin="6,0,0,0"
+                                        Style="{StaticResource TaskDangerActionButtonStyle}"
+                                        Content="删除任务"
+                                        Click="OnDeleteTaskDetailsClick" />
+
+                                </Grid>
+
+                            </StackPanel>
+
+                        </Grid>
+
+                    </StackPanel>
+
+                </ScrollViewer>
+
+            </Border>
+
+        </Popup>
+
+    </Grid>
+
+</UserControl>

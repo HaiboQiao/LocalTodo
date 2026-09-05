@@ -1,0 +1,33 @@
+name: Build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-test:
+    runs-on: windows-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Restore
+        run: dotnet restore LocalTodo.slnx
+
+      - name: Build
+        run: dotnet build LocalTodo.slnx --configuration Release --no-restore
+
+      - name: Test
+        run: dotnet test tests/LocalTodo.Tests/LocalTodo.Tests.csproj --configuration Release --no-build --verbosity normal

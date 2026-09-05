@@ -1,14 +1,26 @@
-# LocalTodo runtime data
-LocalTodo-*-win-x64-portable/Data/
-LocalTodo-*-win-x64-portable/Backups/
-LocalTodo-*-win-x64-portable/Logs/
+# Visual Studio / .NET build output
+.vs/
+**/bin/
+**/obj/
+TestResults/
+*.user
+*.suo
 
-# Protect data when the executable is copied to the repository root
+# Portable runtime data (must stay local and must not enter source control)
 /Data/
-/Backups/
 /Logs/
-
-# SQLite transient files and application logs
-*.db-shm
+/Backups/
+LocalTodo-*-win-x64-portable/Data/
+LocalTodo-*-win-x64-portable/Logs/
+LocalTodo-*-win-x64-portable/Backups/
+*.db
 *.db-wal
+*.db-shm
 *.log
+
+# Generated release output and local inventory
+/Publish/
+/artifacts/
+/.release-staging/
+/.verification/
+/tree.txt

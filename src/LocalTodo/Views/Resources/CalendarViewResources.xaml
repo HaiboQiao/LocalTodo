@@ -1,0 +1,274 @@
+<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+        <BooleanToVisibilityConverter
+            x:Key="BooleanToVisibilityConverter" />
+
+        <!--
+            日历页面日期输入框的文字布局。
+
+            TextAlignment：
+            日期文字靠左。
+
+            HorizontalContentAlignment：
+            输入内容靠左。
+
+            VerticalContentAlignment：
+            日期文字不再垂直居中，而是靠上显示。
+        -->
+        <Style TargetType="{x:Type DatePickerTextBox}">
+            <Setter
+                Property="TextAlignment"
+                Value="Left" />
+
+            <Setter
+                Property="HorizontalContentAlignment"
+                Value="Left" />
+
+            <Setter
+                Property="VerticalContentAlignment"
+                Value="Center" />
+        </Style>
+
+
+        <!-- 日期格任务区使用的窄竖向滚动条。 -->
+        <Style
+            x:Key="CalendarCellVerticalScrollBarStyle"
+            TargetType="{x:Type ScrollBar}">
+
+            <Setter Property="Width" Value="7" />
+            <Setter Property="MinWidth" Value="7" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Opacity" Value="0.62" />
+            <Setter Property="Focusable" Value="False" />
+
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type ScrollBar}">
+                        <Grid
+                            Width="7"
+                            Background="Transparent"
+                            SnapsToDevicePixels="True">
+
+                            <Track
+                                x:Name="PART_Track"
+                                Focusable="False"
+                                IsDirectionReversed="True"
+                                Orientation="Vertical">
+
+                                <Track.DecreaseRepeatButton>
+
+                                    <RepeatButton
+                                        Background="Transparent"
+                                        BorderThickness="0"
+                                        Focusable="False"
+                                        IsTabStop="False"
+                                        Command="{x:Static ScrollBar.PageUpCommand}"
+                                        CommandTarget="{Binding RelativeSource={RelativeSource TemplatedParent}}">
+
+                                        <RepeatButton.Template>
+
+                                            <ControlTemplate
+                                                TargetType="{x:Type RepeatButton}">
+
+                                                <Border
+                                                    Background="Transparent"
+                                                    BorderThickness="0" />
+
+                                            </ControlTemplate>
+                                        </RepeatButton.Template>
+                                    </RepeatButton>
+                                </Track.DecreaseRepeatButton>
+
+                                <Track.Thumb>
+                                    <Thumb
+                                        MinHeight="18"
+                                        Margin="2,1"
+                                        Background="#C5CAD1">
+
+                                        <Thumb.Template>
+                                            <ControlTemplate TargetType="{x:Type Thumb}">
+                                                <Border
+                                                    x:Name="ThumbBody"
+                                                    Background="{TemplateBinding Background}"
+                                                    CornerRadius="2" />
+
+                                                <ControlTemplate.Triggers>
+                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                        <Setter
+                                                            TargetName="ThumbBody"
+                                                            Property="Background"
+                                                            Value="#A7AFB9" />
+                                                    </Trigger>
+
+                                                    <Trigger Property="IsDragging" Value="True">
+                                                        <Setter
+                                                            TargetName="ThumbBody"
+                                                            Property="Background"
+                                                            Value="#8E98A5" />
+                                                    </Trigger>
+                                                </ControlTemplate.Triggers>
+                                            </ControlTemplate>
+                                        </Thumb.Template>
+                                    </Thumb>
+                                </Track.Thumb>
+
+                                <Track.IncreaseRepeatButton>
+                                    <RepeatButton
+                                        Background="Transparent"
+                                        BorderThickness="0"
+                                        Focusable="False"
+                                        IsTabStop="False"
+                                        Command="{x:Static ScrollBar.PageDownCommand}"
+                                        CommandTarget="{Binding RelativeSource={RelativeSource TemplatedParent}}">
+
+                                        <RepeatButton.Template>
+
+                                            <ControlTemplate
+                                                TargetType="{x:Type RepeatButton}">
+
+                                                <Border
+                                                    Background="Transparent"
+                                                    BorderThickness="0" />
+
+                                            </ControlTemplate>
+                                        </RepeatButton.Template>
+                                    </RepeatButton>
+                                </Track.IncreaseRepeatButton>
+                            </Track>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Opacity" Value="0.92" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- 日期格任务列表的滚动容器。仅在任务超出可用高度时显示滚动条。 -->
+        <Style
+            x:Key="CalendarCellTaskScrollViewerStyle"
+            TargetType="{x:Type ScrollViewer}">
+
+            <Setter Property="VerticalScrollBarVisibility" Value="Auto" />
+            <Setter Property="HorizontalScrollBarVisibility" Value="Disabled" />
+            <Setter Property="CanContentScroll" Value="False" />
+            <Setter Property="PanningMode" Value="VerticalOnly" />
+            <Setter Property="Background" Value="Transparent" />
+
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type ScrollViewer}">
+                        <Grid Background="{TemplateBinding Background}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <ScrollContentPresenter
+                                x:Name="PART_ScrollContentPresenter"
+                                Grid.Column="0"
+                                Margin="{TemplateBinding Padding}"
+                                CanContentScroll="{TemplateBinding CanContentScroll}"
+                                Content="{TemplateBinding Content}"
+                                ContentTemplate="{TemplateBinding ContentTemplate}"
+                                ContentStringFormat="{TemplateBinding ContentStringFormat}" />
+
+                            <ScrollBar
+                                x:Name="PART_VerticalScrollBar"
+                                Grid.Column="1"
+                                Width="7"
+                                MinWidth="7"
+                                Focusable="False"
+                                Orientation="Vertical"
+                                Style="{StaticResource CalendarCellVerticalScrollBarStyle}"
+                                Visibility="{TemplateBinding ComputedVerticalScrollBarVisibility}"
+                                Maximum="{TemplateBinding ScrollableHeight}"
+                                ViewportSize="{TemplateBinding ViewportHeight}"
+                                Value="{Binding VerticalOffset,
+                                    RelativeSource={RelativeSource TemplatedParent},
+                                    Mode=OneWay}" />
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- 星期标题 -->
+        <Style
+            x:Key="CalendarWeekHeaderStyle"
+            TargetType="TextBlock">
+
+            <Setter
+                Property="HorizontalAlignment"
+                Value="Center" />
+
+            <Setter
+                Property="VerticalAlignment"
+                Value="Center" />
+
+            <Setter
+                Property="FontWeight"
+                Value="SemiBold" />
+
+            <Setter
+                Property="Foreground"
+                Value="{StaticResource Brush.TextSecondary}" />
+        </Style>
+
+        <!--
+            日期格中的可点击任务行。
+            保留原来的浅色小条外观，鼠标经过时稍微加深。
+        -->
+        <Style
+            x:Key="CalendarTaskButtonStyle"
+            TargetType="Button">
+
+            <Setter Property="Margin" Value="0,0,0,3" />
+            <Setter Property="Padding" Value="4,2" />
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="Background" Value="{StaticResource Brush.SurfaceSubtle}" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border
+                            x:Name="TaskButtonBorder"
+                            Padding="{TemplateBinding Padding}"
+                            Background="{TemplateBinding Background}"
+                            CornerRadius="6">
+
+                            <ContentPresenter
+                                HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                VerticalAlignment="Center" />
+                        </Border>
+
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter
+                                    TargetName="TaskButtonBorder"
+                                    Property="Background"
+                                    Value="{StaticResource Brush.PrimaryLight}" />
+                            </Trigger>
+
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter
+                                    TargetName="TaskButtonBorder"
+                                    Property="Background"
+                                    Value="{StaticResource Brush.SurfaceSelected}" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- 日期格中的任务行 -->
+</ResourceDictionary>

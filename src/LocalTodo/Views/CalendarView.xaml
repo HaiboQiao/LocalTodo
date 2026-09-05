@@ -1,0 +1,757 @@
+<UserControl
+    x:Class="LocalTodo.Views.CalendarView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="clr-namespace:LocalTodo.Views.Controls"
+    xmlns:models="clr-namespace:LocalTodo.Models"
+    xmlns:viewModels="clr-namespace:LocalTodo.ViewModels"
+    UseLayoutRounding="True"
+    SnapsToDevicePixels="True"
+    Loaded="OnCalendarViewLoaded"
+    Unloaded="OnCalendarViewUnloaded"
+    PreviewMouseWheel="OnCalendarPreviewMouseWheel">
+
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="Resources/CalendarViewResources.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        <DataTemplate
+            x:Key="CalendarTaskTemplate"
+            DataType="{x:Type models:TaskItem}">
+
+            <Button
+                Style="{StaticResource CalendarTaskButtonStyle}"
+                Tag="{Binding}"
+                Click="OnOpenTaskDetailsClick">
+
+                <Grid>
+                    <Grid.ColumnDefinitions>
+
+                        <!-- ★ / ○ / 圆中★ -->
+                        <ColumnDefinition Width="Auto" />
+
+                        <!--
+                            任务标题占据所有剩余空间。
+                            标题过长时自己显示省略号。
+                        -->
+                        <ColumnDefinition Width="*" />
+
+                        <!--
+                            具体截止时间。
+
+                            只有 HasDueTime=True 时才显示，
+                            宽度只占 HH:mm 所需要的空间。
+                        -->
+                        <ColumnDefinition Width="Auto" />
+
+                    </Grid.ColumnDefinitions>
+
+                    <!--
+                        日历任务状态标记：
+
+                        普通任务：
+                        无图标
+
+                        重点任务：
+                        ★
+
+                        循环任务：
+                        ○
+
+                        重点循环任务：
+                        圆圈包住 ★
+                    -->
+                    <ContentPresenter
+                        Grid.Column="0"
+                        VerticalAlignment="Center"
+                        Content="{Binding}"
+                        ContentTemplate="{StaticResource CalendarTaskStatusMarkerTemplate}" />
+
+                    <TextBlock
+                        Grid.Column="1"
+                        Margin="0,0,4,0"
+                        VerticalAlignment="Center"
+                        Text="{Binding Title}"
+                        FontSize="13"
+                        TextTrimming="CharacterEllipsis">
+
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+
+                                <Setter
+                                    Property="Foreground"
+                                    Value="{StaticResource Brush.TextPrimary}" />
+
+                                <Style.Triggers>
+                                    <DataTrigger
+                                        Binding="{Binding IsCompleted}"
+                                        Value="True">
+
+                                        <Setter
+                                            Property="Foreground"
+                                            Value="{StaticResource Brush.TextSecondary}" />
+
+                                        <Setter
+                                            Property="TextDecorations"
+                                            Value="Strikethrough" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+
+                    <!--
+                        具体截止时间。
+
+                        只有 HasDueTime=True 的任务显示。
+
+                        时间使用 TaskItem.DueTimeText，
+                        已经转换成 Windows 本地时间，
+                        格式固定为 HH:mm。
+
+                        Grid.Column=2 + HorizontalAlignment=Right，
+                        让时间始终贴着任务条右边。
+                    -->
+                    <TextBlock
+                        Grid.Column="2"
+                        Margin="4,0,0,0"
+                        HorizontalAlignment="Right"
+                        VerticalAlignment="Center"
+                        Text="{Binding DueTimeText}"
+                        FontSize="11"
+                        Foreground="{StaticResource Brush.TextSecondary}"
+                        TextAlignment="Right"
+                        Visibility="{Binding HasDueTime,
+                            Converter={StaticResource BooleanToVisibilityConverter}}" />
+                </Grid>
+            </Button>
+        </DataTemplate>
+
+        <!-- 一个日期格 -->
+        <DataTemplate
+            x:Key="CalendarDayTemplate"
+            DataType="{x:Type viewModels:CalendarDayItem}">
+
+            <Border
+                BorderThickness="0,0,1,1"
+                MouseLeftButtonUp="OnCalendarDayCellMouseLeftButtonUp">
+
+                <Border.Style>
+                    <Style TargetType="Border">
+
+                        <Setter Property="Background" Value="{StaticResource Brush.CardBackground}" />
+                        <Setter Property="BorderBrush" Value="{StaticResource Brush.Border}" />
+                        <Setter Property="Opacity" Value="1" />
+
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsCurrentMonth}" Value="False">
+                                <Setter Property="Background" Value="{StaticResource Brush.SurfaceSubtle}" />
+                                <Setter Property="Opacity" Value="0.58" />
+                            </DataTrigger>
+
+                            <DataTrigger Binding="{Binding IsToday}" Value="True">
+                                <Setter Property="Background" Value="{StaticResource Brush.PrimaryLight}" />
+                                <Setter Property="BorderBrush" Value="{StaticResource Brush.Primary}" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Border.Style>
+
+                <Grid Margin="7">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <!-- 阳历和农历 -->
+                    <Grid Grid.Row="0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock
+                            Grid.Column="0"
+                            Text="{Binding SolarDayText}"
+                            FontSize="14">
+
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Foreground" Value="{StaticResource Brush.TextPrimary}" />
+
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsToday}" Value="True">
+                                            <Setter Property="Foreground" Value="{StaticResource Brush.Primary}" />
+                                            <Setter Property="FontWeight" Value="Bold" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+
+                        <TextBlock
+                            Grid.Column="1"
+                            Margin="6,0,0,0"
+                            Text="{Binding LunarText}"
+                            FontSize="11"
+                            Foreground="{StaticResource Brush.TextSecondary}" />
+                    </Grid>
+
+                    <!--
+                        当天全部任务。
+                        只有内容超出日期格可用高度时，右侧才显示窄滚动条。
+                    -->
+                    <ScrollViewer
+                        Grid.Row="1"
+                        Margin="0,7,0,0"
+                        Tag="CalendarDayTaskScroller"
+                        Style="{StaticResource CalendarCellTaskScrollViewerStyle}">
+
+                        <ItemsControl
+                            ItemsSource="{Binding Tasks}"
+                            ItemTemplate="{StaticResource CalendarTaskTemplate}" />
+                    </ScrollViewer>
+                </Grid>
+            </Border>
+        </DataTemplate>
+
+        </ResourceDictionary>
+    </UserControl.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="38" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!--
+            月份标题。
+
+            月份切换不再使用按钮，
+            而是在日历区域滚动鼠标滚轮：
+            向上滚动查看上个月；
+            向下滚动查看下个月。
+        -->
+        <Grid Grid.Row="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <TextBlock
+                Grid.Column="0"
+                VerticalAlignment="Center"
+                Text="{Binding MonthTitle}"
+                FontSize="24"
+                FontWeight="SemiBold" />
+
+            <Border
+                Grid.Column="1"
+                Padding="10,6"
+                VerticalAlignment="Center"
+                Background="{StaticResource Brush.SurfaceSubtle}"
+                BorderBrush="{StaticResource Brush.Border}"
+                BorderThickness="1"
+                CornerRadius="8">
+
+                <TextBlock
+                    Text="滚动鼠标滚轮切换月份"
+                    FontSize="11"
+                    Foreground="{StaticResource Brush.TextMuted}" />
+            </Border>
+        </Grid>
+
+        <!-- 星期标题，从周一开始 -->
+        <Border
+            Grid.Row="1"
+            Margin="0,14,0,0"
+            Background="{StaticResource Brush.CardBackground}"
+            BorderBrush="{StaticResource Brush.Border}"
+            BorderThickness="1,1,1,0"
+            CornerRadius="14,14,0,0">
+
+            <UniformGrid Columns="7">
+                <TextBlock Text="周一" Style="{StaticResource CalendarWeekHeaderStyle}" />
+                <TextBlock Text="周二" Style="{StaticResource CalendarWeekHeaderStyle}" />
+                <TextBlock Text="周三" Style="{StaticResource CalendarWeekHeaderStyle}" />
+                <TextBlock Text="周四" Style="{StaticResource CalendarWeekHeaderStyle}" />
+                <TextBlock Text="周五" Style="{StaticResource CalendarWeekHeaderStyle}" />
+                <TextBlock Text="周六" Style="{StaticResource CalendarWeekHeaderStyle}" />
+                <TextBlock Text="周日" Style="{StaticResource CalendarWeekHeaderStyle}" />
+            </UniformGrid>
+        </Border>
+
+        <!-- 6 行 × 7 列月视图 -->
+        <Border
+            Grid.Row="2"
+            Background="{StaticResource Brush.CardBackground}"
+            BorderBrush="{StaticResource Brush.Border}"
+            BorderThickness="1,0,1,1"
+            CornerRadius="0,0,14,14">
+
+            <ItemsControl
+                ItemsSource="{Binding Days}"
+                ItemTemplate="{StaticResource CalendarDayTemplate}">
+
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <UniformGrid
+                            Rows="6"
+                            Columns="7" />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+            </ItemsControl>
+        </Border>
+
+        <!--
+            指定日期新增任务。
+
+            外观和字段与任务详情一致；
+            StaysOpen=True 表示点击弹窗外部不会自动关闭。
+            只能通过右上角 × 或“添加任务”按钮关闭。
+        -->
+        <Popup
+            x:Name="QuickAddPopup"
+            AllowsTransparency="True"
+            Placement="Bottom"
+            HorizontalOffset="0"
+            VerticalOffset="6"
+            StaysOpen="True"
+            PopupAnimation="Fade">
+
+            <!--
+                日历新增任务 Popup。
+
+                宽度与“所有任务 → 新增任务”统一为 430。
+
+                底部布局：
+                第一行：截止日期 / 截止时间 / 是否提醒
+                第二行：所属象限 / 是否循环 / 添加任务
+            -->
+            <Border
+                x:Name="QuickAddPopupRoot"
+                Width="430"
+                MaxHeight="620"
+                Style="{StaticResource PopupCardStyle}"
+                PreviewMouseLeftButtonDown=
+                    "OnQuickAddPopupPreviewMouseLeftButtonDown">
+
+                <ScrollViewer
+                    VerticalScrollBarVisibility="Auto"
+                    HorizontalScrollBarVisibility="Disabled">
+
+                    <StackPanel>
+
+                        <!-- 标题和右上角关闭按钮 -->
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock
+                                Grid.Column="0"
+                                VerticalAlignment="Center"
+                                Text="新增任务"
+                                Style="{StaticResource TaskPopupHeadingTextStyle}" />
+
+                            <Button
+                                Grid.Column="1"
+                                Width="28"
+                                Height="28"
+                                Padding="0"
+                                Background="Transparent"
+                                BorderThickness="0"
+                                Cursor="Hand"
+                                Content="×"
+                                FontSize="18"
+                                Foreground="{StaticResource Brush.TextSecondary}"
+                                Click="OnCloseQuickAddClick" />
+                        </Grid>
+
+                        <!-- 任务标题和重点标记 -->
+                        <Grid Margin="0,16,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock
+                                Grid.Column="0"
+                                VerticalAlignment="Center"
+                                Text="任务标题"
+                                FontWeight="SemiBold" />
+
+                            <StackPanel
+                                Grid.Column="1"
+                                VerticalAlignment="Center"
+                                Orientation="Horizontal">
+                                <CheckBox
+                                    Margin="0,0,14,0"
+                                    VerticalAlignment="Center"
+                                    Style="{StaticResource ImportantTaskCheckBoxStyle}"
+                                    Content="标记为持续日期"
+                                    IsChecked="{Binding QuickAddIsContinuous,
+                                        Mode=TwoWay,
+                                        UpdateSourceTrigger=PropertyChanged}" />
+                                <CheckBox
+                                    VerticalAlignment="Center"
+                                    Style="{StaticResource ImportantTaskCheckBoxStyle}"
+                                    Content="标记为重点任务"
+                                    IsChecked="{Binding QuickAddIsImportant,
+                                        Mode=TwoWay,
+                                        UpdateSourceTrigger=PropertyChanged}" />
+                            </StackPanel>
+                        </Grid>
+
+                        <TextBox
+                            x:Name="CalendarTaskTitleTextBox"
+                            Style="{StaticResource TaskEditorTextBoxStyle}"
+                            Height="40"
+                            Margin="0,6,0,0"
+                            Padding="9,5"
+                            VerticalContentAlignment="Center"
+                            Text="{Binding QuickAddTitle,
+                                Mode=TwoWay,
+                                UpdateSourceTrigger=PropertyChanged}" />
+
+                        <!-- 任务说明 -->
+                        <TextBlock
+                            Margin="0,14,0,6"
+                            Text="任务说明"
+                            FontWeight="SemiBold" />
+
+                        <TextBox
+                            Style="{StaticResource TaskEditorTextBoxStyle}"
+                            MinHeight="120"
+                            MaxHeight="230"
+                            Padding="9"
+                            AcceptsReturn="True"
+                            AcceptsTab="True"
+                            TextWrapping="Wrap"
+                            VerticalScrollBarVisibility="Auto"
+                            Text="{Binding QuickAddDescription,
+                                Mode=TwoWay,
+                                UpdateSourceTrigger=PropertyChanged}">
+
+                            <TextBox.Resources>
+
+                                <Style
+                                    TargetType="{x:Type ScrollBar}"
+                                    BasedOn="{StaticResource
+                                        TaskDescriptionThinScrollBarStyle}" />
+
+                            </TextBox.Resources>
+
+                        </TextBox>
+
+                        <!--
+                            ======================================
+                            第一行：截止日期 / 截止时间 / 是否提醒
+                            ======================================
+                        -->
+                        <Grid Margin="0,14,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="10" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="10" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <controls:TaskDateSelectorView
+                                Grid.Column="0"
+                                SelectedDate="{Binding QuickAddDate}" />
+
+                            <controls:TaskValueSelectorView
+                                Grid.Column="2"
+                                Label="截止时间"
+                                ItemsSource="{Binding DueTimeOptions}"
+                                SelectedValue="{Binding QuickAddDueTime}" />
+
+                            <controls:TaskItemSelectorView
+                                Grid.Column="4"
+                                Label="是否提醒"
+                                IsEnabled="{Binding CanSetQuickAddReminder}"
+                                ItemsSource="{Binding ReminderOptions}"
+                                SelectedItem="{Binding QuickAddReminderOption}" />
+                        </Grid>
+
+                        <!--
+                            ======================================
+                            第二行：所属象限 / 是否循环 / 添加任务
+                            ======================================
+                        -->
+                        <Grid Margin="0,12,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="10" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="10" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <controls:TaskValueSelectorView
+                                Grid.Column="0"
+                                Label="所属象限"
+                                ItemsSource="{Binding QuadrantOptions}"
+                                SelectedValue="{Binding QuickAddQuadrant}" />
+
+                            <controls:TaskValueSelectorView
+                                Grid.Column="2"
+                                Label="是否循环"
+                                ItemsSource="{Binding RepeatOptions}"
+                                SelectedValue="{Binding QuickAddRepeatType}" />
+
+                            <!-- 添加任务 -->
+                            <StackPanel Grid.Column="4">
+                                <!--
+                                    空标题用于占位，
+                                    保证添加按钮和两个 ComboBox 底边对齐。
+                                -->
+                                <TextBlock
+                                    Margin="0,0,0,6"
+                                    Text=" "
+                                    FontWeight="SemiBold" />
+
+                                <Button
+                                    Height="38"
+                                    Style="{StaticResource TaskPrimaryActionButtonStyle}"
+                                    Content="添加任务"
+                                    Click="OnConfirmQuickAddClick" />
+                            </StackPanel>
+                        </Grid>
+
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
+        </Popup>
+
+
+        <!-- 鼠标附近的任务详情编辑弹窗 -->
+        <Popup
+            x:Name="TaskDetailsPopup"
+            AllowsTransparency="True"
+            Placement="MousePoint"
+            HorizontalOffset="12"
+            VerticalOffset="12"
+            StaysOpen="False"
+            PopupAnimation="Fade"
+            Closed="OnTaskDetailsPopupClosed">
+
+            <Border
+                x:Name="TaskDetailsPopupRoot"
+                Width="430"
+                MaxHeight="720"
+                Style="{StaticResource PopupCardStyle}">
+
+                <ScrollViewer
+                    VerticalScrollBarVisibility="Auto"
+                    HorizontalScrollBarVisibility="Disabled">
+
+                    <StackPanel>
+
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock
+                                Grid.Column="0"
+                                VerticalAlignment="Center"
+                                Text="任务详情"
+                                Style="{StaticResource TaskPopupHeadingTextStyle}" />
+
+                            <Button
+                                Grid.Column="1"
+                                Width="28"
+                                Height="28"
+                                Padding="0"
+                                Background="Transparent"
+                                BorderThickness="0"
+                                Cursor="Hand"
+                                Content="×"
+                                FontSize="18"
+                                Foreground="{StaticResource Brush.TextSecondary}"
+                                Click="OnCloseTaskDetailsClick" />
+                        </Grid>
+
+                        <TextBlock
+                            Margin="0,6,0,0"
+                            Text="{Binding StatusMessage}"
+                            FontSize="13"
+                            Foreground="{StaticResource Brush.TextSecondary}"
+                            TextWrapping="Wrap" />
+
+                        <!-- 标题和重点标记 -->
+                        <Grid Margin="0,16,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock
+                                Grid.Column="0"
+                                VerticalAlignment="Center"
+                                Text="任务标题"
+                                FontWeight="SemiBold" />
+
+                            <StackPanel
+                                Grid.Column="1"
+                                VerticalAlignment="Center"
+                                Orientation="Horizontal">
+                                <CheckBox
+                                    Margin="0,0,14,0"
+                                    VerticalAlignment="Center"
+                                    Style="{StaticResource ImportantTaskCheckBoxStyle}"
+                                    Content="标记为持续日期"
+                                    IsChecked="{Binding EditorIsContinuous,
+                                        Mode=TwoWay,
+                                        UpdateSourceTrigger=PropertyChanged}"
+                                    IsEnabled="{Binding CanSetEditorContinuous}" />
+                                <CheckBox
+                                    VerticalAlignment="Center"
+                                    Style="{StaticResource ImportantTaskCheckBoxStyle}"
+                                    Content="标记为重点任务"
+                                    IsChecked="{Binding EditorIsImportant,
+                                        Mode=TwoWay,
+                                        UpdateSourceTrigger=PropertyChanged}" />
+                            </StackPanel>
+                        </Grid>
+
+                        <TextBox
+                            Style="{StaticResource TaskEditorTextBoxStyle}"
+                            Height="40"
+                            Margin="0,6,0,0"
+                            Padding="9,5"
+                            VerticalContentAlignment="Center"
+                            Text="{Binding EditorTitle,
+                                Mode=TwoWay,
+                                UpdateSourceTrigger=PropertyChanged}" />
+
+                        <!-- 任务说明 -->
+                        <TextBlock
+                            Margin="0,14,0,6"
+                            Text="任务说明"
+                            FontWeight="SemiBold" />
+
+                        <TextBox
+                            Style="{StaticResource TaskEditorTextBoxStyle}"
+                            MinHeight="120"
+                            MaxHeight="230"
+                            Padding="9"
+                            AcceptsReturn="True"
+                            AcceptsTab="True"
+                            TextWrapping="Wrap"
+                            VerticalScrollBarVisibility="Auto"
+                            Text="{Binding EditorDescription,
+                                Mode=TwoWay,
+                                UpdateSourceTrigger=PropertyChanged}">
+
+                            <TextBox.Resources>
+
+                                <Style
+                                    TargetType="{x:Type ScrollBar}"
+                                    BasedOn="{StaticResource
+                                        TaskDescriptionThinScrollBarStyle}" />
+
+                            </TextBox.Resources>
+
+                        </TextBox>
+
+                        <!--
+                            ======================================
+                            任务详情底部：2 行 × 3 列
+                            ======================================
+
+                            第一行：
+                            截止日期 / 截止时间 / 是否提醒
+
+                            第二行：
+                            所属象限 / 是否循环 / 删除任务
+
+                            Pending 和 Completed 任务统一使用
+                            同一套详情布局与编辑功能。
+                        -->
+                        <StackPanel Margin="0,14,0,0">
+
+                            <!-- 第一行 -->
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="10" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="10" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+
+                                <controls:TaskDateSelectorView
+                                    Grid.Column="0"
+                                    SelectedDate="{Binding EditorDueDate}" />
+
+                                <controls:TaskValueSelectorView
+                                    Grid.Column="2"
+                                    Label="截止时间"
+                                    IsEnabled="{Binding CanSetEditorDueTime}"
+                                    ItemsSource="{Binding DueTimeOptions}"
+                                    SelectedValue="{Binding EditorDueTime}" />
+
+                                <controls:TaskItemSelectorView
+                                    Grid.Column="4"
+                                    Label="是否提醒"
+                                    IsEnabled="{Binding CanSetEditorReminder}"
+                                    ItemsSource="{Binding ReminderOptions}"
+                                    SelectedItem="{Binding EditorReminderOption}" />
+                            </Grid>
+
+                            <!-- 第二行 -->
+                            <Grid Margin="0,12,0,0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="10" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="10" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+
+                                <controls:TaskValueSelectorView
+                                    Grid.Column="0"
+                                    Label="所属象限"
+                                    ItemsSource="{Binding QuadrantOptions}"
+                                    SelectedValue="{Binding EditorQuadrant}" />
+
+                                <controls:TaskValueSelectorView
+                                    Grid.Column="2"
+                                    Label="是否循环"
+                                    IsEnabled="{Binding CanSetEditorRepeat}"
+                                    ItemsSource="{Binding RepeatOptions}"
+                                    SelectedValue="{Binding EditorRepeatType}" />
+
+                                <!--
+                                    删除按钮保持现有 Click 事件不变，
+                                    因此普通删除与循环任务三选项删除
+                                    的业务逻辑全部保持原样。
+                                -->
+                                <StackPanel Grid.Column="4">
+                                    <TextBlock
+                                        Margin="0,0,0,6"
+                                        Text=" "
+                                        FontWeight="SemiBold" />
+
+                                    <Button
+                                        Height="38"
+                                        Style="{StaticResource TaskDangerActionButtonStyle}"
+                                        Content="删除任务"
+                                        Click="OnDeleteTaskDetailsClick" />
+                                </StackPanel>
+                            </Grid>
+                        </StackPanel>
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
+        </Popup>
+    </Grid>
+</UserControl>

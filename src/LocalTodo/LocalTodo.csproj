@@ -1,0 +1,57 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>WinExe</OutputType>
+        <TargetFramework>net10.0-windows</TargetFramework>
+
+        <UseWPF>true</UseWPF>
+        <UseWindowsForms>true</UseWindowsForms>
+
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+
+        <AssemblyName>LocalTodo</AssemblyName>
+        <RootNamespace>LocalTodo</RootNamespace>
+        <ApplicationTitle>LocalTodo</ApplicationTitle>
+        <Version>3.0.0</Version>
+        <Authors>HaiboQiao</Authors>
+        <Description>Windows 本地离线任务管理应用</Description>
+        <Copyright>Copyright 2026 HaiboQiao</Copyright>
+        <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+        <RepositoryUrl>https://github.com/HaiboQiao/LocalTodo</RepositoryUrl>
+
+        <ApplicationIcon>Resources\Icons\LocalTodo.ico</ApplicationIcon>
+        <ApplicationManifest>app.manifest</ApplicationManifest>
+        <ApplicationHighDpiMode>PerMonitorV2</ApplicationHighDpiMode>
+    </PropertyGroup>
+
+    <!--
+        启用 Windows Forms 是为了使用 NotifyIcon。
+        删除全局 using，避免 WPF 和 WinForms 中的
+        Application、UserControl 等类型产生冲突。
+    -->
+    <ItemGroup>
+        <Using Remove="System.Windows.Forms" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
+
+        <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.10" />
+
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.10" />
+
+        <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="2.1.12" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <!--
+            将图标嵌入应用程序集，
+            供 WPF 窗口和系统托盘读取。
+        -->
+        <None Remove="Resources\Icons\LocalTodo.ico" />
+
+        <Resource Include="Resources\Icons\LocalTodo.ico" />
+    </ItemGroup>
+
+</Project>

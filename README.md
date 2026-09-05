@@ -24,7 +24,7 @@ LocalTodo 是一款面向 Windows 的本地离线任务管理应用。它不需�
 
 也可[直接下载 3.0.0 便携版](https://github.com/HaiboQiao/LocalTodo/releases/download/v3.0.0/LocalTodo-3.0.0-win-x64-portable.zip)。Release 页面末尾由 GitHub 自动提供的 `Source code (zip)` 和 `Source code (tar.gz)` 是源码包，不是可直接运行的软件。
 
-程序目前没有数字签名。Windows 首次运行时可能显示安全提示，请确认文件来自本仓库，并使用根目录的 [`SHA256SUMS.txt`](SHA256SUMS.txt) 校验文件完整性。
+程序目前没有数字签名。Windows 首次运行时可能显示安全提示，请确认文件来自本仓库，并使用 Release 同页提供的 [`SHA256SUMS.txt`](https://github.com/HaiboQiao/LocalTodo/releases/download/v3.0.0/SHA256SUMS.txt) 校验文件完整性。
 
 ## 主要功能
 

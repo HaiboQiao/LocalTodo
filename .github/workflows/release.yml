@@ -78,7 +78,16 @@ jobs:
           if ($null -eq $archiveFile) {
             throw "Portable archive was not generated."
           }
-          if (Test-Path -LiteralPath $notesFile) {
+          gh release view $tag *> $null
+          $releaseExists = $LASTEXITCODE -eq 0
+          if ($releaseExists) {
+            if (Test-Path -LiteralPath $notesFile) {
+              gh release edit $tag `
+                --title "LocalTodo $($tag.TrimStart('v'))" `
+                --notes-file $notesFile
+            }
+            gh release upload $tag $archiveFile.FullName artifacts/SHA256SUMS.txt --clobber
+          } elseif (Test-Path -LiteralPath $notesFile) {
             gh release create $tag $archiveFile.FullName artifacts/SHA256SUMS.txt `
               --title "LocalTodo $($tag.TrimStart('v'))" `
               --notes-file $notesFile `
